@@ -1,0 +1,12 @@
+{
+  "scripts": {
+    "clean": "rm -fv *.out *.s *.ssa",
+    "o": "node index.js > out.ssa && qbe -o asm.s out.ssa && cc asm.s"
+  },
+  "dependencies": {
+    "babel-core": "^6.25.0",
+    "babel-traverse": "^6.25.0",
+    "babel-types": "^6.25.0",
+    "dedent": "^0.7.0"
+  }
+}
