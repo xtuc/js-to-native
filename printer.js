@@ -94,10 +94,10 @@ const visitor = {
 
         code.prepend(runtime.getIntegerFormat());
 
-        code.append(gen._function(name, dedent`
+        code.appendMain(dedent`
             %${id} =w copy ${value}
             call $printf(l $integerFmt, w %${id})
-        `));
+        `);
 
       } else if (t.isIdentifier(firstArg)) {
         const value = '$' + firstArg.name;
@@ -118,9 +118,9 @@ const visitor = {
           break;
         }
 
-        code.append(gen._function(name, dedent`
+        code.appendMain(dedent`
             call $printf(l $${formater}, w ${value})
-        `));
+        `);
 
       } else if (t.isStringLiteral(firstArg)) {
         const value = firstArg.value;
@@ -131,9 +131,9 @@ const visitor = {
           data $${id} = { b "${value}" }
        `);
 
-        code.append(gen._function(name, dedent`
+        code.appendMain(dedent`
             call $printf(l $stringFmt, w $${id})
-        `));
+        `);
 
       } else if (t.isBinaryExpression(firstArg)) {
         const {left, right} = firstArg;
@@ -157,18 +157,23 @@ const visitor = {
           break;
         }
 
-        code.append(gen._function(name, dedent`
+        code.appendMain(dedent`
             %${id} =w ${operation} ${left.value}, ${right.value}
             call $printf(l $integerFmt, w %${id})
-        `));
+        `);
+
       } else {
         throw new Error(`Unexpected node type: ${path.type}`);
       }
 
-      code.appendMain(dedent`
-        call $${name}()
-      `);
     }
+  },
+
+  FunctionDeclaration(path, {code}) {
+    const {id} = path.node;
+
+    code.append(gen._function(id.name, dedent`
+    `));
   },
 
 };

@@ -24,6 +24,10 @@ console.log(1 - 2);
 console.log(1 + 2);
 console.log(1 / 2);
 console.log(1 * 2);
+
+function test() {
+
+}
 `;
 
 const result = babel.transform(code, options);
