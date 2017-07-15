@@ -25,7 +25,9 @@ console.log(1 + 2);
 console.log(1 / 2);
 console.log(1 * 2);
 
-function test() {
+ab();
+
+function ab() {
   console.log("test function");
 }
 `;

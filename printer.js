@@ -1,4 +1,3 @@
-const indentString = require('indent-string');
 const traverse = require('babel-traverse').default;
 const t = require('babel-types');
 // const dedent = require('dedent');
@@ -81,6 +80,8 @@ const visitor = {
       callee.property.name === 'log'
     ) {
       ILConsoleLog(path, id, append, code);
+    } else {
+      append(`call $${callee.name}()`);
     }
   },
 
@@ -91,7 +92,7 @@ const visitor = {
     path.traverse(visitor, state);
 
     code.append(gen._function(id.name,
-      indentString(state.code.get(), 8)
+      state.code.get()
     ));
 
     code.appendGlobal(state.code.getGlobals());
