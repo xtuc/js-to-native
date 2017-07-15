@@ -3,6 +3,7 @@ const t = require('babel-types');
 const dedent = require('dedent');
 const runtime = require('./runtime');
 const gen = require('./generator');
+const assert = require('assert');
 
 let i = 0;
 function generateGlobalIdentifier() {
@@ -10,18 +11,44 @@ function generateGlobalIdentifier() {
   return 'i' + i;
 }
 
+function getIdentifierType(id) {
+  const annotation = id.typeAnnotation.typeAnnotation;
+
+  if (t.isStringTypeAnnotation(annotation)) {
+    return 'string';
+  } else if (t.isNumberTypeAnnotation(annotation)) {
+    return 'integer';
+  } else {
+    throw new Error(`Unexpected type annotation: ${annotation.type}`);
+  }
+}
+
 class Buffer {
 
   constructor() {
     this._buf = [];
+    this._bufMain = [];
   }
 
   get() {
-    return this._buf.join('\n');
+
+    const main = gen.main(
+      this._bufMain.join('\n')
+    );
+
+    return this._buf.join('\n') + '\n' + main;
   }
 
   append(str) {
     this._buf.push(str);
+  }
+
+  prepend(str) {
+    this._buf.unshift(str);
+  }
+
+  appendMain(str) {
+    this._bufMain.push(str);
   }
 }
 
@@ -30,12 +57,7 @@ const visitor = {
   Program: {
 
     exit(_, {code}) {
-      // code.append('data $fmt = { b "%d\\n" }');
-      code.append('data $fmt = { b "%s\\n" }');
-
-      code.append(gen.main(dedent`
-        call $consolelog()
-      `));
+      code.append('');
     }
   },
 
@@ -58,7 +80,7 @@ const visitor = {
   CallExpression(path, {code}) {
     const {callee} = path.node;
     const id = generateGlobalIdentifier();
-    const name = callee.object.name + callee.property.name;
+    const name = callee.object.name + callee.property.name + id;
 
     if (
       t.isMemberExpression(callee) &&
@@ -70,34 +92,82 @@ const visitor = {
       if (t.isNumericLiteral(firstArg)) {
         const value = firstArg.value;
 
+        code.prepend(runtime.getIntegerFormat());
+
         code.append(gen._function(name, dedent`
             %${id} =w copy ${value}
-            call $printf(l $fmt, w %${id})
+            call $printf(l $integerFmt, w %${id})
         `));
 
       } else if (t.isIdentifier(firstArg)) {
         const value = '$' + firstArg.name;
 
+        const binding = path.scope.getBinding(firstArg.name);
+        assert.ok(binding);
+
+        let formater;
+
+        switch (getIdentifierType(binding.path.node.id)) {
+        case 'string':
+          code.prepend(runtime.getStringFormat());
+          formater = 'stringFmt';
+          break;
+        case 'integer':
+          code.prepend(runtime.getIntegerFormat());
+          formater = 'integerFmt';
+          break;
+        }
+
         code.append(gen._function(name, dedent`
-            call $printf(l $fmt, w ${value})
+            call $printf(l $${formater}, w ${value})
         `));
 
       } else if (t.isStringLiteral(firstArg)) {
         const value = firstArg.value;
 
+        code.prepend(runtime.getStringFormat());
+
+        code.append(dedent`
+          data $${id} = { b "${value}" }
+       `);
+
         code.append(gen._function(name, dedent`
-            %${id} =b "${value}"
-            call $printf(l $fmt, w %${id})
+            call $printf(l $stringFmt, w $${id})
         `));
 
       } else if (t.isBinaryExpression(firstArg)) {
         const {left, right} = firstArg;
 
+        code.prepend(runtime.getIntegerFormat());
+
+        let operation;
+
+        switch (firstArg.operator) {
+        case '+':
+          operation = 'add';
+          break;
+        case '-':
+          operation = 'sub';
+          break;
+        case '/':
+          operation = 'div';
+          break;
+        case '*':
+          operation = 'mul';
+          break;
+        }
+
         code.append(gen._function(name, dedent`
-            %${id} =w add ${left.value}, ${right.value}
-            call $printf(l $fmt, w %${id})
+            %${id} =w ${operation} ${left.value}, ${right.value}
+            call $printf(l $integerFmt, w %${id})
         `));
+      } else {
+        throw new Error(`Unexpected node type: ${path.type}`);
       }
+
+      code.appendMain(dedent`
+        call $${name}()
+      `);
     }
   },
 
