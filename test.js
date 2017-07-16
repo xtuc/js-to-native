@@ -10,14 +10,16 @@ console.log(1 + 2);
 console.log(1 / 2);
 console.log(1 * 2);
 
-ab();
-
 function ab() {
   console.log('test function');
 }
 
-if (1 === 1) {
+const a: number = 1;
+
+if (a === 2) {
   console.log('consequent');
 } else {
   console.log('alternate');
 }
+
+ab();

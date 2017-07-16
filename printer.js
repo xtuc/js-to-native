@@ -5,7 +5,8 @@ const t = require('babel-types');
 const genFunction = require('./IL/functions');
 const genBlock = require('./IL/blocks');
 const ILConsoleLog = require('./IL/console.log');
-const {codeFrameColumns} = require('babel-code-frame');
+const {integerEqInteger} = require('./IL/comparisons');
+const {panic, getIdentifierType} = require('./utils');
 
 let i = 0;
 function generateGlobalIdentifier() {
@@ -114,10 +115,25 @@ const visitor = {
     const conditionId = generateGlobalIdentifier();
 
     // test
-    if (t.isBinaryExpression(test, {operator: '==='})) {
-      append(`%${conditionId} =w ceqw ${test.left.value}, ${test.right.value}`);
+    if (
+      t.isBinaryExpression(test, {operator: '==='}) &&
+      t.isNumericLiteral(test.left) &&
+      t.isNumericLiteral(test.right)
+    ) {
+      append(`%${conditionId} =w ${integerEqInteger(test.left, test.right)}`);
+    } else if (t.isBinaryExpression(test, {operator: '==='})) {
+      const identifier = path.scope.getBinding(test.left.name).path.node.id;
+
+      if (getIdentifierType(identifier, identifier.loc) === 'integer') {
+        append(`%${identifier.name} =w copy $${identifier.name}`);
+        append(`%${conditionId} =w ${integerEqInteger({value: '%' + identifier.name}, test.right)}`);
+      }
+
     } else {
-      throw new Error(`Unsupported test condition: ${test.type} (${test.operator})`);
+      panic(
+        `Unsupported test condition: ${test.type} (${test.left.type} ${test.operator} ${test.right.type})`,
+        test.loc
+      );
     }
 
     // conditional jump

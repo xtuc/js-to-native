@@ -1,18 +1,7 @@
 const t = require('babel-types');
 const runtime = require('../runtime');
 const assert = require('assert');
-
-function getIdentifierType(id) {
-  const annotation = id.typeAnnotation.typeAnnotation;
-
-  if (t.isStringTypeAnnotation(annotation)) {
-    return 'string';
-  } else if (t.isNumberTypeAnnotation(annotation)) {
-    return 'integer';
-  } else {
-    throw new Error(`Unexpected type annotation: ${annotation.type}`);
-  }
-}
+const {getIdentifierType} = require('../utils');
 
 module.exports = function(path, id, append, code) {
   const firstArg = path.node.arguments[0];
@@ -33,7 +22,7 @@ module.exports = function(path, id, append, code) {
 
     let formater;
 
-    switch (getIdentifierType(binding.path.node.id)) {
+    switch (getIdentifierType(binding.path.node.id, binding.path.node.loc)) {
     case 'string':
       code.appendGlobal(runtime.getStringFormat());
       formater = 'stringFmt';
