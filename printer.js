@@ -2,13 +2,19 @@ const traverse = require('babel-traverse').default;
 const t = require('babel-types');
 // const dedent = require('dedent');
 // const runtime = require('./runtime');
-const gen = require('./generator');
+const genFunction = require('./IL/functions');
+const genBlock = require('./IL/blocks');
 const ILConsoleLog = require('./IL/console.log');
+const {codeFrameColumns} = require('babel-code-frame');
 
 let i = 0;
 function generateGlobalIdentifier() {
   i++;
   return 'i' + i;
+}
+
+function debug(...msg) {
+  return '# <------------ ' + msg.join(',');
 }
 
 class Buffer {
@@ -21,7 +27,7 @@ class Buffer {
 
   getWithMain() {
 
-    const main = gen.main(
+    const main = genFunction.main(
       this._bufMain.join('\n')
     );
 
@@ -55,6 +61,7 @@ class Buffer {
 }
 
 const visitor = {
+  noScope: true,
 
   VariableDeclaration(path, {code}) {
     const [declaration] = path.node.declarations;
@@ -86,18 +93,66 @@ const visitor = {
   },
 
   FunctionDeclaration(path, {code}) {
-    const {id} = path.node;
+    const {id, body} = path.node;
     const state = {isMain: false, code: new Buffer};
 
-    path.traverse(visitor, state);
+    traverse(body, visitor, null, state);
 
-    code.append(gen._function(id.name,
+    code.append(genFunction._function(id.name,
       state.code.get()
     ));
 
     code.appendGlobal(state.code.getGlobals());
 
-    path.stop();
+    path.skip();
+  },
+
+  IfStatement(path, {code, isMain}) {
+    const {test, alternate, consequent} = path.node;
+
+    const append = (isMain ? code.appendMain : code.append).bind(code);
+    const conditionId = generateGlobalIdentifier();
+
+    // test
+    if (t.isBinaryExpression(test, {operator: '==='})) {
+      append(`%${conditionId} =w ceqw ${test.left.value}, ${test.right.value}`);
+    } else {
+      throw new Error(`Unsupported test condition: ${test.type} (${test.operator})`);
+    }
+
+    // conditional jump
+    const consequentBlockid = generateGlobalIdentifier();
+    const alternateBlockid = generateGlobalIdentifier();
+
+    append(`jnz %${conditionId}, @${consequentBlockid}, @${alternateBlockid}`);
+
+    // consequent block
+    const consequentState = {isMain: false, code: new Buffer};
+
+    traverse(consequent, visitor, null, consequentState);
+
+    append(genBlock.block(consequentBlockid, consequentState.code.get()));
+    append('jmp @continue');
+
+    code.appendGlobal(consequentState.code.getGlobals());
+
+    // alternate block
+    if (alternate !== null) {
+      const alternateState = {isMain: false, code: new Buffer};
+
+      traverse(alternate, visitor, null, alternateState);
+
+      append(genBlock.block(alternateBlockid, alternateState.code.get()));
+      append('jmp @continue');
+
+      code.appendGlobal(alternateState.code.getGlobals());
+    } else {
+      append(genBlock.empty(alternateBlockid));
+    }
+
+    append(genBlock.empty('continue'));
+
+    path.skip();
   },
 
 };

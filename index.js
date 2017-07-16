@@ -1,5 +1,12 @@
 const babel = require('babel-core');
 const printer = require('./printer');
+const {readFileSync} = require('fs');
+const cp = require('child_process');
+const flow = require('flow-bin');
+
+const FILENAME = 'test.js';
+const FLOW_NO_ERRORS = /No errors!/;
+let flowHasError = false;
 
 const options = {
   parserOpts: {
@@ -12,26 +19,34 @@ const options = {
   },
 };
 
-const code = `
-// var foo: string = "foo bar test";
-var foo: number = 8;
-// var foo = 1 + 2;
-console.log(foo);
-console.log("foo");
-console.log(9);
+const code = readFileSync(FILENAME, 'utf8');
 
-console.log(1 - 2);
-console.log(1 + 2);
-console.log(1 / 2);
-console.log(1 * 2);
+const child = cp.spawn(flow, ['check-contents', '--color=always']);
 
-ab();
+child.stdin.write(code);
+child.stdin.end();
 
-function ab() {
-  console.log("test function");
+child.stdout.on('data', function (data) {
+
+  if (data.toString().match(FLOW_NO_ERRORS)) {
+    flowHasError = false;
+  } else {
+    flowHasError = true;
+
+    console.log('Type error: ' + data);
+  }
+});
+
+child.stdout.on('end', () => {
+
+  if (!flowHasError) {
+    transpileIL();
+  } else {
+    process.exit(1);
+  }
+});
+
+function transpileIL() {
+  const result = babel.transform(code, options);
+  console.log(result.code);
 }
-`;
-
-const result = babel.transform(code, options);
-console.log(result.code);
-
