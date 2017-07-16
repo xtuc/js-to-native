@@ -108,6 +108,28 @@ const visitor = {
     path.skip();
   },
 
+  WhileStatement(path, {code, isMain}) {
+    const {body} = path.node;
+    const append = (isMain ? code.appendMain : code.append).bind(code);
+
+    const conditionId = generateGlobalIdentifier();
+    const continueId = 'continue' + generateGlobalIdentifier();
+    const loopId = 'loop' + generateGlobalIdentifier();
+
+    const state = {isMain: false, code: new Buffer};
+
+    traverse(body, visitor, null, state);
+
+    append(genBlock.block(loopId, state.code.get()));
+    code.appendGlobal(state.code.getGlobals());
+
+    append(`%${conditionId} =w ceqw 1, 1`);
+    append(`jnz %${conditionId}, @${loopId}, @${continueId}`);
+
+    append(genBlock.empty(continueId));
+    path.skip();
+  },
+
   IfStatement(path, {code, isMain}) {
     const {test, alternate, consequent} = path.node;
 

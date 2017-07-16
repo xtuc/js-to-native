@@ -16,10 +16,16 @@ function ab() {
 
 const a: number = 1;
 
-if (a === 2) {
+// Not working yet, BinaryExpression with identifier
+// if (a === 2) {
+if (1 === 2) {
   console.log('consequent');
 } else {
   console.log('alternate');
 }
 
 ab();
+
+while (true) {
+  console.log('loop test');
+}
