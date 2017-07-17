@@ -3,6 +3,7 @@ const runtime = require('./runtime');
 const assert = require('assert');
 const {panic, getFlowTypeAtPos} = require('../utils');
 const {logNumber, logGlobalIdentifierString, logIdentifierNumber} = require('./stdlib/console');
+const {createOperation} = require('./builtin/arithmetic');
 
 module.exports = function(path, id, append, code, appendInstructions) {
   let firstArg = path.node.arguments[0];
@@ -10,33 +11,20 @@ module.exports = function(path, id, append, code, appendInstructions) {
   const firstArgType = getFlowTypeAtPos(firstArg.loc);
 
   if (t.isBinaryExpression(firstArg)) {
-    const {left, right} = firstArg;
+    const {left, right, operator, loc} = firstArg;
 
-    let operation;
+    const operation = createOperation(operator, left.value, right.value);
 
-    switch (firstArg.operator) {
-    case '+':
-      operation = 'add';
-      break;
-    case '-':
-      operation = 'sub';
-      break;
-    case '/':
-      operation = 'div';
-      break;
-    case '*':
-      operation = 'mul';
-      break;
+    if (typeof operation === 'undefined') {
+      return panic('Unsupported arithmetic operation', loc);
     }
 
-    append(
-      `%${id} =w ${operation} ${left.value}, ${right.value}`
-    );
+    appendInstructions([operation]);
 
-    firstArg = t.identifier(id);
+    firstArg = t.identifier(operation.result);
     globalIdentifier = false;
 
-    // Virtually declare variable in scope
+    // Virtually declare a new variable in scope
     path.scope.push({id: firstArg});
   }
 
@@ -74,56 +62,4 @@ module.exports = function(path, id, append, code, appendInstructions) {
   } else {
     return panic(`Unexpected type: ${firstArgType}`, firstArg.loc);
   }
-
-  // if (t.isIdentifier(firstArg)) {
-  //   const value = '$' + firstArg.name;
-
-  //   const binding = path.scope.getBinding(firstArg.name);
-  //   assert.ok(binding);
-
-  //   let formater;
-
-  //   switch (getFlowTypeAtPos(binding.path.node.loc)) {
-  //   case 'string':
-  //     code.appendGlobal(runtime.getStringFormat());
-  //     formater = 'stringFmt';
-  //     break;
-  //   case 'number':
-  //     code.appendGlobal(runtime.getIntegerFormat());
-  //     formater = 'integerFmt';
-  //     break;
-  //   default:
-  //     throw new Error('unsupported type: ' + getFlowTypeAtPos(binding.path.node.loc));
-  //   }
-
-  //   append(`call $printf(l $${formater}, w ${value})`);
-  // } else if (t.isBinaryExpression(firstArg)) {
-  //   const {left, right} = firstArg;
-
-  //   code.appendGlobal(runtime.getIntegerFormat());
-
-  //   let operation;
-
-  //   switch (firstArg.operator) {
-  //   case '+':
-  //     operation = 'add';
-  //     break;
-  //   case '-':
-  //     operation = 'sub';
-  //     break;
-  //   case '/':
-  //     operation = 'div';
-  //     break;
-  //   case '*':
-  //     operation = 'mul';
-  //     break;
-  //   }
-
-  //   append(
-  //     `%${id} =w ${operation} ${left.value}, ${right.value}\n` +
-  //       `call $printf(l $integerFmt, w %${id})`
-  //   );
-  // } else {
-  //   throw new Error(`Unexpected node type: ${path.type}`);
-  // }
 };

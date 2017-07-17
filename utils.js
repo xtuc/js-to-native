@@ -43,7 +43,7 @@ function printInstructions(instructions: [Instruction]): string {
     str += `${i.name} ${i.left}`;
 
     if (i.right) {
-      str += `${i.right}`;
+      str += `, ${i.right}`;
     }
 
     str += '\n';
