@@ -6,7 +6,7 @@ const genFunction = require('./IL/functions');
 const genBlock = require('./IL/blocks');
 const ILConsoleLog = require('./IL/console.log');
 const {integerEqInteger} = require('./IL/comparisons');
-const {panic, getIdentifierType} = require('./utils');
+const {getFlowTypeAtPos, panic} = require('./utils');
 
 let i = 0;
 function generateGlobalIdentifier() {
@@ -146,7 +146,7 @@ const visitor = {
     } else if (t.isBinaryExpression(test, {operator: '==='})) {
       const identifier = path.scope.getBinding(test.left.name).path.node.id;
 
-      if (getIdentifierType(identifier, identifier.loc) === 'integer') {
+      if (getFlowTypeAtPos(identifier.loc) === 'integer') {
         append(`%${identifier.name} =w copy $${identifier.name}`);
         append(`%${conditionId} =w ${integerEqInteger({value: '%' + identifier.name}, test.right)}`);
       }

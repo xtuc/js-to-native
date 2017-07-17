@@ -1,7 +1,7 @@
 const t = require('babel-types');
 const runtime = require('../runtime');
 const assert = require('assert');
-const {getIdentifierType} = require('../utils');
+const {getFlowTypeAtPos} = require('../utils');
 
 module.exports = function(path, id, append, code) {
   const firstArg = path.node.arguments[0];
@@ -22,15 +22,17 @@ module.exports = function(path, id, append, code) {
 
     let formater;
 
-    switch (getIdentifierType(binding.path.node.id, binding.path.node.loc)) {
+    switch (getFlowTypeAtPos(binding.path.node.loc)) {
     case 'string':
       code.appendGlobal(runtime.getStringFormat());
       formater = 'stringFmt';
       break;
-    case 'integer':
+    case 'number':
       code.appendGlobal(runtime.getIntegerFormat());
       formater = 'integerFmt';
       break;
+    default:
+      throw new Error('unsupported type: ' + getFlowTypeAtPos(binding.path.node.loc));
     }
 
     append(`call $printf(l $${formater}, w ${value})`);

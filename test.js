@@ -1,5 +1,5 @@
 // var foo: string = "foo bar test";
-const foo: number = 8;
+const foo = 8;
 // var foo = 1 + 2;
 console.log(foo);
 console.log('foo');
