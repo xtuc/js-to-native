@@ -2,11 +2,43 @@ const t = require('babel-types');
 const runtime = require('./runtime');
 const assert = require('assert');
 const {panic, getFlowTypeAtPos} = require('../utils');
-const {logNumber, logGlobalIdentifierString, logGlobalIdentifierNumber} = require('./stdlib/console');
+const {logNumber, logGlobalIdentifierString, logIdentifierNumber} = require('./stdlib/console');
 
 module.exports = function(path, id, append, code, appendInstructions) {
-  const firstArg = path.node.arguments[0];
+  let firstArg = path.node.arguments[0];
+  let globalIdentifier = true;
   const firstArgType = getFlowTypeAtPos(firstArg.loc);
+
+  if (t.isBinaryExpression(firstArg)) {
+    const {left, right} = firstArg;
+
+    let operation;
+
+    switch (firstArg.operator) {
+    case '+':
+      operation = 'add';
+      break;
+    case '-':
+      operation = 'sub';
+      break;
+    case '/':
+      operation = 'div';
+      break;
+    case '*':
+      operation = 'mul';
+      break;
+    }
+
+    append(
+      `%${id} =w ${operation} ${left.value}, ${right.value}`
+    );
+
+    firstArg = t.identifier(id);
+    globalIdentifier = false;
+
+    // Virtually declare variable in scope
+    path.scope.push({id: firstArg});
+  }
 
   if (firstArgType === 'number') {
     code.appendGlobal(runtime.getIntegerFormat());
@@ -15,7 +47,7 @@ module.exports = function(path, id, append, code, appendInstructions) {
       const binding = path.scope.getBinding(firstArg.name);
       assert.ok(binding);
 
-      appendInstructions(logGlobalIdentifierNumber(firstArg.name));
+      appendInstructions(logIdentifierNumber(firstArg.name, (globalIdentifier ? '$' : '%')));
 
     } else {
       const value = firstArg.value;

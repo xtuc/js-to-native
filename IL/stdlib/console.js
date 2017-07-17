@@ -22,12 +22,12 @@ function logGlobalIdentifierString(id: string): [Instruction] {
   }];
 }
 
-function logGlobalIdentifierNumber(id: string): [Instruction] {
+function logIdentifierNumber(id: string, scope?: string = '$'): [Instruction] {
 
   return [{
     name: 'call',
-    left: `$printf(l $integerFmt, w $${id})`,
+    left: `$printf(l $integerFmt, w ${scope}${id})`,
   }];
 }
 
-module.exports = {logNumber, logGlobalIdentifierNumber, logGlobalIdentifierString};
+module.exports = {logNumber, logIdentifierNumber, logGlobalIdentifierString};
