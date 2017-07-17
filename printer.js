@@ -6,13 +6,7 @@ const genFunction = require('./IL/functions');
 const genBlock = require('./IL/blocks');
 const ILConsoleLog = require('./IL/console.log');
 const {integerEqInteger} = require('./IL/comparisons');
-const {getFlowTypeAtPos, panic} = require('./utils');
-
-let i = 0;
-function generateGlobalIdentifier() {
-  i++;
-  return 'i' + i;
-}
+const {printInstructions, generateGlobalIdentifier, getFlowTypeAtPos, panic} = require('./utils');
 
 function debug(...msg) {
   return '# <------------ ' + msg.join(',');
@@ -51,12 +45,20 @@ class Buffer {
     this._buf.push(str);
   }
 
+  appendInstructions(i: Instruction) {
+    this._buf.push(printInstructions(i));
+  }
+
   appendGlobal(str) {
     this._bufGlobal.push(str);
   }
 
   appendMain(str) {
     this._bufMain.push(str);
+  }
+
+  appendMainInstructions(i: Instruction) {
+    this._bufMain.push(printInstructions(i));
   }
 
 }
@@ -82,12 +84,14 @@ const visitor = {
 
     const append = (isMain ? code.appendMain : code.append).bind(code);
 
+    const appendInstructions = (isMain ? code.appendMainInstructions : code.appendInstructions).bind(code);
+
     if (
       t.isMemberExpression(callee) &&
       callee.object.name === 'console' &&
       callee.property.name === 'log'
     ) {
-      ILConsoleLog(path, id, append, code);
+      ILConsoleLog(path, id, append, code, appendInstructions);
     } else {
       append(`call $${callee.name}()`);
     }

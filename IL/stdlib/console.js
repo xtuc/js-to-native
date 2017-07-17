@@ -1,0 +1,33 @@
+/* @flow */
+const {generateGlobalIdentifier} = require('../../utils');
+
+function logNumber(value: string): [Instruction] {
+  const id = generateGlobalIdentifier();
+
+  return [{
+    type: 'w',
+    name: 'copy',
+    left: value,
+    result: id,
+  }, {
+    name: 'call',
+    left: `$printf(l $integerFmt, w %${id})`,
+  }];
+}
+
+function logGlobalIdentifierString(id: string): [Instruction] {
+  return [{
+    name: 'call',
+    left: `$printf(l $stringFmt, w $${id})`,
+  }];
+}
+
+function logGlobalIdentifierNumber(id: string): [Instruction] {
+
+  return [{
+    name: 'call',
+    left: `$printf(l $integerFmt, w $${id})`,
+  }];
+}
+
+module.exports = {logNumber, logGlobalIdentifierNumber, logGlobalIdentifierString};

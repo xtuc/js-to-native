@@ -1,7 +1,7 @@
 {
   "scripts": {
     "clean": "rm -fv *.out *.s *.ssa",
-    "o": "node index.js > out.ssa && qbe -o asm.s out.ssa && cc asm.s"
+    "o": "babel-node index.js > out.ssa && qbe -o asm.s out.ssa && cc asm.s"
   },
   "dependencies": {
     "babel-code-frame": "^7.0.0-alpha.15",
@@ -11,5 +11,8 @@
     "dedent": "^0.7.0",
     "flow-bin": "^0.50.0",
     "indent-string": "^3.1.0"
+  },
+  "devDependencies": {
+    "babel-plugin-transform-flow-strip-types": "^6.22.0"
   }
 }

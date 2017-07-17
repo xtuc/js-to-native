@@ -1,75 +1,97 @@
 const t = require('babel-types');
-const runtime = require('../runtime');
+const runtime = require('./runtime');
 const assert = require('assert');
-const {getFlowTypeAtPos} = require('../utils');
+const {panic, getFlowTypeAtPos} = require('../utils');
+const {logNumber, logGlobalIdentifierString, logGlobalIdentifierNumber} = require('./stdlib/console');
 
-module.exports = function(path, id, append, code) {
+module.exports = function(path, id, append, code, appendInstructions) {
   const firstArg = path.node.arguments[0];
+  const firstArgType = getFlowTypeAtPos(firstArg.loc);
 
-  if (t.isNumericLiteral(firstArg)) {
-    const value = firstArg.value;
-
+  if (firstArgType === 'number') {
     code.appendGlobal(runtime.getIntegerFormat());
 
-    append(
-      `%${id} =w copy ${value}\n` + `call $printf(l $integerFmt, w %${id})`
-    );
-  } else if (t.isIdentifier(firstArg)) {
-    const value = '$' + firstArg.name;
+    if (t.isIdentifier(firstArg)) {
+      const binding = path.scope.getBinding(firstArg.name);
+      assert.ok(binding);
 
-    const binding = path.scope.getBinding(firstArg.name);
-    assert.ok(binding);
+      appendInstructions(logGlobalIdentifierNumber(firstArg.name));
 
-    let formater;
+    } else {
+      const value = firstArg.value;
 
-    switch (getFlowTypeAtPos(binding.path.node.loc)) {
-    case 'string':
-      code.appendGlobal(runtime.getStringFormat());
-      formater = 'stringFmt';
-      break;
-    case 'number':
-      code.appendGlobal(runtime.getIntegerFormat());
-      formater = 'integerFmt';
-      break;
-    default:
-      throw new Error('unsupported type: ' + getFlowTypeAtPos(binding.path.node.loc));
+      appendInstructions(logNumber(value));
     }
 
-    append(`call $printf(l $${formater}, w ${value})`);
-  } else if (t.isStringLiteral(firstArg)) {
-    const value = firstArg.value;
-
+  } else if (firstArgType === 'string') {
     code.appendGlobal(runtime.getStringFormat());
-    code.appendGlobal(`data $${id} = { b "${value}" }`);
 
-    append(`call $printf(l $stringFmt, w $${id})`);
-  } else if (t.isBinaryExpression(firstArg)) {
-    const {left, right} = firstArg;
+    if (t.isIdentifier(firstArg)) {
+      const binding = path.scope.getBinding(firstArg.name);
+      assert.ok(binding);
 
-    code.appendGlobal(runtime.getIntegerFormat());
+      appendInstructions(logGlobalIdentifierString(firstArg.name));
 
-    let operation;
+    } else {
+      const value = firstArg.value;
 
-    switch (firstArg.operator) {
-    case '+':
-      operation = 'add';
-      break;
-    case '-':
-      operation = 'sub';
-      break;
-    case '/':
-      operation = 'div';
-      break;
-    case '*':
-      operation = 'mul';
-      break;
+      code.appendGlobal(`data $${id} = { b "${value}" }`);
+
+      appendInstructions(logGlobalIdentifierString(id));
     }
-
-    append(
-      `%${id} =w ${operation} ${left.value}, ${right.value}\n` +
-        `call $printf(l $integerFmt, w %${id})`
-    );
   } else {
-    throw new Error(`Unexpected node type: ${path.type}`);
+    return panic(`Unexpected type: ${firstArgType}`, firstArg.loc);
   }
+
+  // if (t.isIdentifier(firstArg)) {
+  //   const value = '$' + firstArg.name;
+
+  //   const binding = path.scope.getBinding(firstArg.name);
+  //   assert.ok(binding);
+
+  //   let formater;
+
+  //   switch (getFlowTypeAtPos(binding.path.node.loc)) {
+  //   case 'string':
+  //     code.appendGlobal(runtime.getStringFormat());
+  //     formater = 'stringFmt';
+  //     break;
+  //   case 'number':
+  //     code.appendGlobal(runtime.getIntegerFormat());
+  //     formater = 'integerFmt';
+  //     break;
+  //   default:
+  //     throw new Error('unsupported type: ' + getFlowTypeAtPos(binding.path.node.loc));
+  //   }
+
+  //   append(`call $printf(l $${formater}, w ${value})`);
+  // } else if (t.isBinaryExpression(firstArg)) {
+  //   const {left, right} = firstArg;
+
+  //   code.appendGlobal(runtime.getIntegerFormat());
+
+  //   let operation;
+
+  //   switch (firstArg.operator) {
+  //   case '+':
+  //     operation = 'add';
+  //     break;
+  //   case '-':
+  //     operation = 'sub';
+  //     break;
+  //   case '/':
+  //     operation = 'div';
+  //     break;
+  //   case '*':
+  //     operation = 'mul';
+  //     break;
+  //   }
+
+  //   append(
+  //     `%${id} =w ${operation} ${left.value}, ${right.value}\n` +
+  //       `call $printf(l $integerFmt, w %${id})`
+  //   );
+  // } else {
+  //   throw new Error(`Unexpected node type: ${path.type}`);
+  // }
 };

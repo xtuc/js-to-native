@@ -1,7 +1,9 @@
 [ignore]
 
 [include]
+*
 
 [libs]
+types.js
 
 [options]

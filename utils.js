@@ -26,4 +26,30 @@ function getFlowTypeAtPos(loc) {
   }
 }
 
-module.exports = {panic, getFlowTypeAtPos};
+let i = 0;
+function generateGlobalIdentifier() {
+  i++;
+  return 'i' + i;
+}
+
+function printInstructions(instructions: [Instruction]): string {
+  return instructions.reduce((acc: string, i: Instruction) => {
+    let str = '';
+
+    if (i.result) {
+      str += `%${i.result} =${i.type} `;
+    }
+
+    str += `${i.name} ${i.left}`;
+
+    if (i.right) {
+      str += `${i.right}`;
+    }
+
+    str += '\n';
+
+    return acc + str;
+  }, '');
+}
+
+module.exports = {panic, getFlowTypeAtPos, generateGlobalIdentifier, printInstructions};
