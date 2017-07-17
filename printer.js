@@ -1,11 +1,12 @@
 const traverse = require('babel-traverse').default;
+const assert = require('assert');
 const t = require('babel-types');
 // const dedent = require('dedent');
 // const runtime = require('./runtime');
 const genFunction = require('./IL/functions');
 const genBlock = require('./IL/blocks');
 const ILConsoleLog = require('./IL/console.log');
-const {integerEqInteger} = require('./IL/comparisons');
+const {integerEqInteger, stringEqString} = require('./IL/comparisons');
 const {printInstructions, generateGlobalIdentifier, getFlowTypeAtPos, panic} = require('./utils');
 
 function debug(...msg) {
@@ -83,7 +84,6 @@ const visitor = {
     const id = generateGlobalIdentifier();
 
     const append = (isMain ? code.appendMain : code.append).bind(code);
-
     const appendInstructions = (isMain ? code.appendMainInstructions : code.appendInstructions).bind(code);
 
     if (
@@ -138,29 +138,90 @@ const visitor = {
     const {test, alternate, consequent} = path.node;
 
     const append = (isMain ? code.appendMain : code.append).bind(code);
-    const conditionId = generateGlobalIdentifier();
+    const appendInstructions = (isMain ? code.appendMainInstructions : code.appendInstructions).bind(code);
 
-    // test
-    if (
-      t.isBinaryExpression(test, {operator: '==='}) &&
-      t.isNumericLiteral(test.left) &&
-      t.isNumericLiteral(test.right)
-    ) {
-      append(`%${conditionId} =w ${integerEqInteger(test.left, test.right)}`);
-    } else if (t.isBinaryExpression(test, {operator: '==='})) {
-      const identifier = path.scope.getBinding(test.left.name).path.node.id;
+    let conditionId;
 
-      if (getFlowTypeAtPos(identifier.loc) === 'integer') {
-        append(`%${identifier.name} =w copy $${identifier.name}`);
-        append(`%${conditionId} =w ${integerEqInteger({value: '%' + identifier.name}, test.right)}`);
+    if (t.isBinaryExpression(test, {operator: '==='})) {
+      const leftType = getFlowTypeAtPos(test.left.loc);
+      const rightType = getFlowTypeAtPos(test.right.loc);
+
+      if (leftType === 'number' && rightType === 'number') {
+
+        if (t.isIdentifier(test.left)) {
+          const binding = path.scope.getBinding(test.left.name);
+          assert.ok(binding);
+
+          const id = generateGlobalIdentifier();
+
+          appendInstructions([{
+            type: 'w',
+            name: 'copy',
+            left: '$' + test.left.name,
+            result: id,
+          }]);
+
+          test.left.value = '%' + id;
+        }
+
+        if (t.isIdentifier(test.right)) {
+          const binding = path.scope.getBinding(test.right.name);
+          assert.ok(binding);
+
+          const id = generateGlobalIdentifier();
+
+          appendInstructions([{
+            type: 'w',
+            name: 'copy',
+            left: '$' + test.right.name,
+            result: id,
+          }]);
+
+          test.right.value = '%' + id;
+        }
+
+        const instruction = integerEqInteger(test.left.value, test.right.value);
+        conditionId = instruction.result;
+
+        appendInstructions([instruction]);
+
+      } else if (leftType === 'string' && rightType === 'string') {
+        const instruction = stringEqString(test.left.value, test.right.value);
+        conditionId = instruction.result;
+
+        appendInstructions([instruction]);
+      } else {
+        return panic('Unsupported type', test.left.loc);
       }
 
     } else {
-      panic(
-        `Unsupported test condition: ${test.type} (${test.left.type} ${test.operator} ${test.right.type})`,
-        test.loc
-      );
+      return panic('Unsupported type', test.left.loc);
     }
+
+    // test
+    // if (
+    //   t.isBinaryExpression(test, {operator: '==='}) &&
+    //   t.isNumericLiteral(test.left) &&
+    //   t.isNumericLiteral(test.right)
+    // ) {
+    //   const instruction = integerEqInteger(test.left.value, test.right.value);
+    //   conditionId = instruction.result;
+
+    //   appendInstructions([instruction]);
+    // } else if (t.isBinaryExpression(test, {operator: '==='})) {
+    //   const identifier = path.scope.getBinding(test.left.name).path.node.id;
+
+    //   if (getFlowTypeAtPos(identifier.loc) === 'integer') {
+    //     append(`%${identifier.name} =w copy $${identifier.name}`);
+    //     append(`%${conditionId} =w ${integerEqInteger({value: '%' + identifier.name}, test.right)}`);
+    //   }
+
+    // } else {
+    //   panic(
+    //     `Unsupported test condition: ${test.type} (${test.left.type} ${test.operator} ${test.right.type})`,
+    //     test.loc
+    //   );
+    // }
 
     // conditional jump
     const consequentBlockid = generateGlobalIdentifier();
