@@ -1,5 +1,6 @@
 {
   "scripts": {
+    "test": "mocha --recursive",
     "clean": "rm -fv *.out *.s *.ssa",
     "o": "babel-node index.js > out.ssa && qbe -o asm.s out.ssa && cc asm.s"
   },
@@ -13,6 +14,7 @@
     "indent-string": "^3.1.0"
   },
   "devDependencies": {
-    "babel-plugin-transform-flow-strip-types": "^6.22.0"
+    "babel-plugin-transform-flow-strip-types": "^6.22.0",
+    "mocha": "^3.4.2"
   }
 }
