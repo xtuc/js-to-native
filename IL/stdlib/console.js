@@ -15,10 +15,10 @@ function logNumber(value: string): [Instruction] {
   }];
 }
 
-function logGlobalIdentifierString(id: string): [Instruction] {
+function logIdentifierString(id: string): [Instruction] {
   return [{
     name: 'call',
-    left: `$printf(l $stringFmt, w $${id})`,
+    left: `$printf(l $stringFmt, w ${id})`,
   }];
 }
 
@@ -30,4 +30,4 @@ function logIdentifierNumber(id: string, scope?: string = '$'): [Instruction] {
   }];
 }
 
-module.exports = {logNumber, logIdentifierNumber, logGlobalIdentifierString};
+module.exports = {logNumber, logIdentifierNumber, logIdentifierString};

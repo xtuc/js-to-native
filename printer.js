@@ -7,6 +7,9 @@ const genFunction = require('./IL/functions');
 const genBlock = require('./IL/blocks');
 const ILConsoleLog = require('./IL/console.log');
 const {integerEqInteger, stringEqString} = require('./IL/comparisons');
+const {createCondition} = require('./IL/conditions');
+const {createStringData, createLocalNumberData} = require('./IL/variable');
+const {createOperation} = require('./IL/builtin/arithmetic');
 const {printInstructions, generateGlobalIdentifier, getFlowTypeAtPos, panic} = require('./utils');
 
 function debug(...msg) {
@@ -46,7 +49,7 @@ class Buffer {
     this._buf.push(str);
   }
 
-  appendInstructions(i: Instruction) {
+  appendInstructions(i: [Instruction]) {
     this._buf.push(printInstructions(i));
   }
 
@@ -54,11 +57,15 @@ class Buffer {
     this._bufGlobal.push(str);
   }
 
+  appendGlobalInstructions(i: [Instruction]) {
+    this._bufGlobal.push(printInstructions(i));
+  }
+
   appendMain(str) {
     this._bufMain.push(str);
   }
 
-  appendMainInstructions(i: Instruction) {
+  appendMainInstructions(i: [Instruction]) {
     this._bufMain.push(printInstructions(i));
   }
 
@@ -72,10 +79,24 @@ const visitor = {
 
     if (t.isNumericLiteral(declaration.init)) {
 
-      code.append(`data $${declaration.id.name} = { w ${declaration.init.value} }`);
+      code.appendInstructions([createLocalNumberData(declaration.id.name, declaration.init.value)]);
     } else if (t.isStringLiteral(declaration.init)) {
 
-      code.append(`data $${declaration.id.name} = { b "${declaration.init.value}" }`);
+      code.appendGlobalInstructions([createStringData(declaration.id.name, declaration.init.value)]);
+    } else if (t.isBinaryExpression(declaration.init)) {
+      const {left, right, operator} = declaration.init;
+
+      if (t.isIdentifier(left)) {
+        left.value = '%' + left.name;
+      }
+
+      if (t.isIdentifier(right)) {
+        right.value = '%' + right.name;
+      }
+
+      code.appendInstructions([createOperation(operator, left.value, right.value)]);
+    } else {
+      return panic('Unsupported type', declaration.id.loc);
     }
   },
 
@@ -93,18 +114,50 @@ const visitor = {
     ) {
       ILConsoleLog(path, id, append, code, appendInstructions);
     } else {
-      append(`call $${callee.name}()`);
+      const args = path.node.arguments.map((id) => {
+        // FIXME(sven): how to get the type of this node?
+        // Was created by a plugin
+
+        // const type = getFlowTypeAtPos(id.loc);
+        const type = 'number';
+
+        if (type === 'number') {
+          return 'w $' + id.name;
+        } else {
+          return panic('Unsupported type', id.loc);
+        }
+      });
+
+      append(`call $${callee.name}(${args.join(',')})`);
     }
   },
 
   FunctionDeclaration(path, {code}) {
     const {id, body} = path.node;
+    let {params} = path.node;
+
     const state = {isMain: false, code: new Buffer};
 
     traverse(body, visitor, null, state);
 
+    if (params.length > 0) {
+
+      params = params.map(function (param) {
+        const type = getFlowTypeAtPos(param.loc);
+
+        if (type === 'number') {
+          return 'w %' + param.name;
+        } else {
+          return panic('Unsupported type', param.loc);
+        }
+
+      });
+    }
+
     code.append(genFunction._function(id.name,
-      state.code.get()
+      state.code.get(),
+      'w',
+      params,
     ));
 
     code.appendGlobal(state.code.getGlobals());
@@ -113,10 +166,9 @@ const visitor = {
   },
 
   WhileStatement(path, {code, isMain}) {
-    const {body} = path.node;
+    const {body, test} = path.node;
     const append = (isMain ? code.appendMain : code.append).bind(code);
 
-    const conditionId = generateGlobalIdentifier();
     const continueId = 'continue' + generateGlobalIdentifier();
     const loopId = 'loop' + generateGlobalIdentifier();
 
@@ -127,11 +179,25 @@ const visitor = {
     append(genBlock.block(loopId, state.code.get()));
     code.appendGlobal(state.code.getGlobals());
 
-    append(`%${conditionId} =w ceqw 1, 1`);
-    append(`jnz %${conditionId}, @${loopId}, @${continueId}`);
+    const eq = createCondition(t, test);
+    code.appendInstructions([eq]);
+
+    append(`jnz ${eq.result}, @${loopId}, @${continueId}`);
 
     append(genBlock.empty(continueId));
     path.skip();
+  },
+
+  AssignmentExpression(path, {code, isMain}) {
+    const {loc, left, right} = path.node;
+
+    const append = (isMain ? code.appendMain : code.append).bind(code);
+
+    if (t.isIdentifier(left) && t.isIdentifier(right)) {
+      append(`%${left.name} =w %${right.name}`);
+    } else {
+      return panic('Unsupported assignement', loc);
+    }
   },
 
   IfStatement(path, {code, isMain}) {
@@ -197,31 +263,6 @@ const visitor = {
     } else {
       return panic('Unsupported type', test.left.loc);
     }
-
-    // test
-    // if (
-    //   t.isBinaryExpression(test, {operator: '==='}) &&
-    //   t.isNumericLiteral(test.left) &&
-    //   t.isNumericLiteral(test.right)
-    // ) {
-    //   const instruction = integerEqInteger(test.left.value, test.right.value);
-    //   conditionId = instruction.result;
-
-    //   appendInstructions([instruction]);
-    // } else if (t.isBinaryExpression(test, {operator: '==='})) {
-    //   const identifier = path.scope.getBinding(test.left.name).path.node.id;
-
-    //   if (getFlowTypeAtPos(identifier.loc) === 'integer') {
-    //     append(`%${identifier.name} =w copy $${identifier.name}`);
-    //     append(`%${conditionId} =w ${integerEqInteger({value: '%' + identifier.name}, test.right)}`);
-    //   }
-
-    // } else {
-    //   panic(
-    //     `Unsupported test condition: ${test.type} (${test.left.type} ${test.operator} ${test.right.type})`,
-    //     test.loc
-    //   );
-    // }
 
     // conditional jump
     const consequentBlockid = generateGlobalIdentifier();

@@ -16,14 +16,29 @@
 
 // const a: number = 1;
 
-if (1 === 1) {
-  console.log('consequent');
-} else {
-  console.log('alternate');
-}
+// if (1 === 1) {
+//   console.log('consequent');
+// } else {
+//   console.log('alternate');
+// }
 
 // ab();
 
 // while (true) {
 //   console.log('loop test');
 // }
+
+function fibonacci(num: number) {
+  var a = 1, b = 0, temp = 0;
+
+  while (num >= 0) {
+    temp = a;
+    // a = a + b;
+    b = temp;
+    num--;
+  }
+
+  return b;
+}
+
+fibonacci(0)

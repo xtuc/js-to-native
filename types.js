@@ -8,4 +8,8 @@ type Instruction = {|
   left: string,
   right?: string,
   result: string,
+  isGlobal?: boolean,
+  isData?: boolean,
 |};
+
+type BabelASTNode = Object;

@@ -9,6 +9,11 @@ const FLOW_NO_ERRORS = /No errors!/;
 let flowHasError = false;
 
 const options = {
+  plugins: [
+    require('./AST/argumentToVar'),
+    require('./AST/flattenVariableDeclarations'),
+    require('./AST/updateExpressionToAssignement'),
+  ],
   parserOpts: {
     plugins: [
       'flow'

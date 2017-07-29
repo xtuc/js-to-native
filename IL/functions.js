@@ -1,9 +1,9 @@
 const dedent = require('dedent');
 
-function _function(name, body, returnType = 'w') {
+function _function(name, body, returnType = 'w', args = []) {
 
   return dedent`
-    function ${returnType} $${name}() {
+    function ${returnType} $${name}(${args.join(',')}) {
       @start
         ${body}
         ret 0

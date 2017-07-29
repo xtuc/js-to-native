@@ -25,4 +25,20 @@ function stringEqString(left: string, right: string): Instruction {
   };
 }
 
-module.exports = {integerEqInteger, stringEqString};
+function unsignedGreaterOrEqualIntegers(left: string, right: string): Instruction {
+  const id = generateGlobalIdentifier();
+
+  return {
+    type: 'w',
+    name: 'cugel',
+    left,
+    right,
+    result: id,
+  };
+}
+
+module.exports = {
+  integerEqInteger,
+  stringEqString,
+  unsignedGreaterOrEqualIntegers,
+};

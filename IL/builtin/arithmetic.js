@@ -49,7 +49,7 @@ function mul(left: string, right: string): Instruction {
   };
 }
 
-function createOperation(operator: string, left: string, right: string) {
+function createOperation(operator: string, left: string, right: string): Instruction {
 
   switch (operator) {
   case '+':

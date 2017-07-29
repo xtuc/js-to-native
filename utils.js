@@ -18,7 +18,7 @@ function getFlowTypeAtPos(loc) {
 
   const stdout = execFileSync(flow, ['type-at-pos', FILENAME, line, column]);
 
-  if (stdout.toString().match(/\(unknown\)/)) {
+  if (stdout.toString().match(/\(unknown\)|any/)) {
     panic('Missing type annotation', loc);
   } else {
     const firstLine = stdout.toString().split('\n')[0];
@@ -36,13 +36,24 @@ function printInstructions(instructions: [Instruction]): string {
   return instructions.reduce((acc: string, i: Instruction) => {
     let str = '';
 
-    if (i.result) {
-      str += `%${i.result} =${i.type} `;
+    if (i.isData) {
+      str += `data `;
+    }
+
+    if (typeof i.result !== 'undefined') {
+
+      if (i.isGlobal === true) {
+        i.result = '$' + i.result;
+      } else {
+        i.result = '%' + i.result;
+      }
+
+      str += `${i.result} =${i.type || ''} `;
     }
 
     str += `${i.name} ${i.left}`;
 
-    if (i.right) {
+    if (typeof i.right !== 'undefined') {
       str += `, ${i.right}`;
     }
 
