@@ -41,7 +41,13 @@ module.exports = function(path, id, append, code, appendInstructions) {
         globalIdentifier = false;
       }
 
-      appendInstructions(logIdentifierNumber(firstArg.name, (globalIdentifier ? '$' : '%')));
+      if (path.scope.hasBinding(firstArg.name)) {
+        globalIdentifier = false;
+      }
+
+      appendInstructions(
+        logIdentifierNumber(firstArg.name, globalIdentifier ? '$' : '%')
+      );
 
     } else {
       const value = firstArg.value;

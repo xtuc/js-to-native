@@ -1,10 +1,20 @@
 /* @flow */
-const {getFlowTypeAtPos, panic} = require('../utils');
+const {generateGlobalIdentifier, getFlowTypeAtPos, panic} = require('../utils');
 const {
   unsignedGreaterOrEqualIntegers,
+  integerEqInteger,
 } = require('./comparisons');
+const {createLocalAssignement} = require('./variable');
 
-function createCondition(t: Object, test: BabelASTNode): Instruction {
+function createConstantTrueCondition(): Instruction {
+  return integerEqInteger('1', '1');
+}
+
+function createConstantFalseCondition(): Instruction {
+  return integerEqInteger('0', '1');
+}
+
+function createCondition(t: Object, test: BabelASTNode): [Instruction] {
   const {left, right} = test;
 
   if (
@@ -14,13 +24,33 @@ function createCondition(t: Object, test: BabelASTNode): Instruction {
   ) {
 
     if (t.isIdentifier(left)) {
-      left.value = '%' + left.name;
-    }
+      const id = generateGlobalIdentifier();
+      const load = createLocalAssignement(id, '%' + left.name);
 
-    return unsignedGreaterOrEqualIntegers(
-      left.value,
-      right.value
-    );
+      return [
+        load,
+        unsignedGreaterOrEqualIntegers(
+          '%' + id,
+          right.value,
+        ),
+      ];
+    } else {
+
+      return [
+        unsignedGreaterOrEqualIntegers(
+          left.value,
+          right.value,
+        ),
+      ];
+
+    }
+  } else if (t.isBooleanLiteral(test, {value: true})) {
+
+    return createConstantTrueCondition();
+  } else if (t.isBooleanLiteral(test, {value: false})) {
+    // TODO(sven): we could actually remove the path
+
+    return createConstantFalseCondition();
   } else {
     return panic('Unsupported type', test.loc);
   }

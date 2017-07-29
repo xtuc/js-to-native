@@ -30,7 +30,7 @@ function unsignedGreaterOrEqualIntegers(left: string, right: string): Instructio
 
   return {
     type: 'w',
-    name: 'cugel',
+    name: 'cugew',
     left,
     right,
     result: id,

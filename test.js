@@ -28,17 +28,24 @@
 //   console.log('loop test');
 // }
 
-function fibonacci(num: number) {
+function fibonacci() {
+  var num = 10;
   var a = 1, b = 0, temp = 0;
+
+  if (num >= 0) {
+    console.log('test');
+  }
 
   while (num >= 0) {
     temp = a;
-    // a = a + b;
+    a = a + b;
     b = temp;
     num--;
+
+    console.log(num);
   }
 
   return b;
 }
 
-fibonacci(0)
+fibonacci()

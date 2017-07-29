@@ -8,8 +8,9 @@ const genBlock = require('./IL/blocks');
 const ILConsoleLog = require('./IL/console.log');
 const {integerEqInteger, stringEqString} = require('./IL/comparisons');
 const {createCondition} = require('./IL/conditions');
-const {createStringData, createLocalNumberData} = require('./IL/variable');
+const {writeLocal, createLocalVariable, createStringData, createLocalNumberData} = require('./IL/variable');
 const {createOperation} = require('./IL/builtin/arithmetic');
+const {maxNumber} = require('./IL/stdlib/number');
 const {printInstructions, generateGlobalIdentifier, getFlowTypeAtPos, panic} = require('./utils');
 
 function debug(...msg) {
@@ -74,15 +75,16 @@ class Buffer {
 const visitor = {
   noScope: true,
 
-  VariableDeclaration(path, {code}) {
+  VariableDeclaration(path, {code, isMain}) {
     const [declaration] = path.node.declarations;
+    const appendInstructions = (isMain ? code.appendMainInstructions : code.appendInstructions).bind(code);
 
     if (t.isNumericLiteral(declaration.init)) {
 
-      code.appendInstructions([createLocalNumberData(declaration.id.name, declaration.init.value)]);
+      appendInstructions(createLocalNumberData(declaration.id.name, declaration.init.value));
     } else if (t.isStringLiteral(declaration.init)) {
 
-      code.appendGlobalInstructions([createStringData(declaration.id.name, declaration.init.value)]);
+      appendInstructions([createStringData(declaration.id.name, declaration.init.value)]);
     } else if (t.isBinaryExpression(declaration.init)) {
       const {left, right, operator} = declaration.init;
 
@@ -94,9 +96,25 @@ const visitor = {
         right.value = '%' + right.name;
       }
 
-      code.appendInstructions([createOperation(operator, left.value, right.value)]);
+      const op = createOperation(operator, left.value, right.value);
+      const store = writeLocal(declaration.id.name, '%' + op[1].result);
+
+      appendInstructions([
+        ...createLocalNumberData(declaration.id.name, '0'),
+        ...op,
+        store,
+      ]);
     } else {
       return panic('Unsupported type', declaration.id.loc);
+    }
+  },
+
+  MemberExpression(path, {code, isMain}) {
+    const {object, property} = path.node;
+    const appendInstructions = (isMain ? code.appendMainInstructions : code.appendInstructions).bind(code);
+
+    if (object.mame === 'Number' && property.name === 'MAX_VALUE') {
+      appendInstructions(maxNumber());
     }
   },
 
@@ -122,7 +140,7 @@ const visitor = {
         const type = 'number';
 
         if (type === 'number') {
-          return 'w $' + id.name;
+          return 'w %' + id.name;
         } else {
           return panic('Unsupported type', id.loc);
         }
@@ -168,36 +186,43 @@ const visitor = {
   WhileStatement(path, {code, isMain}) {
     const {body, test} = path.node;
     const append = (isMain ? code.appendMain : code.append).bind(code);
+    const appendInstructions = (isMain ? code.appendMainInstructions : code.appendInstructions).bind(code);
 
     const continueId = 'continue' + generateGlobalIdentifier();
     const loopId = 'loop' + generateGlobalIdentifier();
+    const conditionId = 'condition' + generateGlobalIdentifier();
 
     const state = {isMain: false, code: new Buffer};
 
+    append(genBlock.empty(conditionId));
+
+    const eq = createCondition(t, test);
+    appendInstructions(eq);
+
+    // Loop or continue
+    append(`jnz ${eq[eq.length - 1].result}, @${loopId}, @${continueId}`);
+
+    // Loop body
     traverse(body, visitor, null, state);
 
     append(genBlock.block(loopId, state.code.get()));
     code.appendGlobal(state.code.getGlobals());
 
-    const eq = createCondition(t, test);
-    code.appendInstructions([eq]);
-
-    append(`jnz ${eq.result}, @${loopId}, @${continueId}`);
+    append('jmp @' + conditionId);
 
     append(genBlock.empty(continueId));
     path.skip();
   },
 
   AssignmentExpression(path, {code, isMain}) {
-    const {loc, left, right} = path.node;
+    const appendInstructions = (isMain ? code.appendMainInstructions : code.appendInstructions).bind(code);
 
-    const append = (isMain ? code.appendMain : code.append).bind(code);
+    const localVar = createLocalVariable(t, path.node);
 
-    if (t.isIdentifier(left) && t.isIdentifier(right)) {
-      append(`%${left.name} =w %${right.name}`);
-    } else {
-      return panic('Unsupported assignement', loc);
-    }
+    // Rename old access to new variable
+    // path.scope.rename(path.node.left.name, localVar.result);
+
+    appendInstructions(localVar);
   },
 
   IfStatement(path, {code, isMain}) {
