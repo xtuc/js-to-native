@@ -10,7 +10,6 @@ let flowHasError = false;
 
 const options = {
   plugins: [
-    require('./AST/argumentToVar'),
     require('./AST/flattenVariableDeclarations'),
     require('./AST/updateExpressionToAssignement'),
   ],

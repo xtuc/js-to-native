@@ -70,7 +70,7 @@ module.exports = function(path, id, append, code, appendInstructions) {
 
       code.appendGlobalInstructions([stringData]);
 
-      appendInstructions(logIdentifierString(id));
+      appendInstructions(logIdentifierString('$' + id));
     }
   } else {
     return panic(`Unexpected type: ${firstArgType}`, firstArg.loc);

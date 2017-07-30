@@ -8,7 +8,7 @@ const FILENAME = 'test.js';
 function panic(msg, loc) {
   const code = readFileSync(FILENAME, 'utf8');
 
-  console.log(codeFrame(code, loc));
+  console.error(codeFrame(code, loc));
 
   throw new Error(msg);
 }

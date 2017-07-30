@@ -85,6 +85,11 @@ const visitor = {
     } else if (t.isStringLiteral(declaration.init)) {
 
       appendInstructions([createStringData(declaration.id.name, declaration.init.value)]);
+    } else if (t.isUnaryExpression(declaration.init, {operator: '-'})) {
+      // negative numberLiteral
+      const {argument} = declaration.init;
+
+      appendInstructions(createLocalNumberData(declaration.id.name, '-' + argument.value));
     } else if (t.isBinaryExpression(declaration.init)) {
       const {left, right, operator} = declaration.init;
 
@@ -105,7 +110,7 @@ const visitor = {
         store,
       ]);
     } else {
-      return panic('Unsupported type', declaration.id.loc);
+      return panic(`Unsupported type (${declaration.id.type} = ${declaration.init.type})`, declaration.id.loc);
     }
   },
 
@@ -231,69 +236,16 @@ const visitor = {
     const append = (isMain ? code.appendMain : code.append).bind(code);
     const appendInstructions = (isMain ? code.appendMainInstructions : code.appendInstructions).bind(code);
 
-    let conditionId;
+    const eq = createCondition(t, test);
+    const conditionId = '%' + eq[eq.length - 1].result;
 
-    if (t.isBinaryExpression(test, {operator: '==='})) {
-      const leftType = getFlowTypeAtPos(test.left.loc);
-      const rightType = getFlowTypeAtPos(test.right.loc);
-
-      if (leftType === 'number' && rightType === 'number') {
-
-        if (t.isIdentifier(test.left)) {
-          const binding = path.scope.getBinding(test.left.name);
-          assert.ok(binding);
-
-          const id = generateGlobalIdentifier();
-
-          appendInstructions([{
-            type: 'w',
-            name: 'copy',
-            left: '$' + test.left.name,
-            result: id,
-          }]);
-
-          test.left.value = '%' + id;
-        }
-
-        if (t.isIdentifier(test.right)) {
-          const binding = path.scope.getBinding(test.right.name);
-          assert.ok(binding);
-
-          const id = generateGlobalIdentifier();
-
-          appendInstructions([{
-            type: 'w',
-            name: 'copy',
-            left: '$' + test.right.name,
-            result: id,
-          }]);
-
-          test.right.value = '%' + id;
-        }
-
-        const instruction = integerEqInteger(test.left.value, test.right.value);
-        conditionId = instruction.result;
-
-        appendInstructions([instruction]);
-
-      } else if (leftType === 'string' && rightType === 'string') {
-        const instruction = stringEqString(test.left.value, test.right.value);
-        conditionId = instruction.result;
-
-        appendInstructions([instruction]);
-      } else {
-        return panic('Unsupported type', test.left.loc);
-      }
-
-    } else {
-      return panic('Unsupported type', test.left.loc);
-    }
+    appendInstructions(eq);
 
     // conditional jump
     const consequentBlockid = generateGlobalIdentifier();
     const alternateBlockid = generateGlobalIdentifier();
 
-    append(`jnz %${conditionId}, @${consequentBlockid}, @${alternateBlockid}`);
+    append(`jnz ${conditionId}, @${consequentBlockid}, @${alternateBlockid}`);
 
     // consequent block
     const consequentState = {isMain: false, code: new Buffer};

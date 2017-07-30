@@ -15,35 +15,48 @@ function createConstantFalseCondition(): Instruction {
 }
 
 function createCondition(t: Object, test: BabelASTNode): [Instruction] {
-  const {left, right} = test;
+  const {left, right, operator} = test;
 
   if (
-    t.isBinaryExpression(test, {operator: '>='}) &&
     getFlowTypeAtPos(left.loc) === 'number' &&
     getFlowTypeAtPos(right.loc) === 'number'
   ) {
+    const res = [];
 
     if (t.isIdentifier(left)) {
       const id = generateGlobalIdentifier();
       const load = createLocalAssignement(id, '%' + left.name);
 
-      return [
-        load,
-        unsignedGreaterOrEqualIntegers(
-          '%' + id,
-          right.value,
-        ),
-      ];
-    } else {
+      res.push(load);
 
-      return [
+      left.value = '%' + id;
+    }
+
+    if (t.isUnaryExpression(left)) {
+      left.value = left.operator + left.argument.value;
+    }
+
+    if (t.isUnaryExpression(right)) {
+      right.value = right.operator + right.argument.value;
+    }
+
+    if (operator === '===') {
+
+      res.push(
+        integerEqInteger(left.value, right.value)
+      );
+    } else if (operator === '>=') {
+
+      res.push(
         unsignedGreaterOrEqualIntegers(
           left.value,
           right.value,
         ),
-      ];
-
+      );
     }
+
+    return res;
+
   } else if (t.isBooleanLiteral(test, {value: true})) {
 
     return createConstantTrueCondition();
