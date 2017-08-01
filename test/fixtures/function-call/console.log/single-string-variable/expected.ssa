@@ -1,0 +1,9 @@
+data $stringFmt = { b "%s\n" }
+
+export function w $main() {
+  @start
+    data $a =  { b "test", b 0 }
+call $printf(l $stringFmt, w $a)
+    ret 0
+}
+

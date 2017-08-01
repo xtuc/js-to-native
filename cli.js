@@ -1,1 +1,1 @@
-require('./index.js')('test.js');
+require('./index.js')(process.argv[2]);

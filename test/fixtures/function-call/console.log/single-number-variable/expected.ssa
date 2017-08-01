@@ -1,0 +1,11 @@
+data $integerFmt = { b "%d\n" }
+
+export function w $main() {
+  @start
+    %a =l alloc4 4
+storew 0, %a
+%i2 =w loadw %a
+call $printf(l $integerFmt, w %i2)
+    ret 0
+}
+

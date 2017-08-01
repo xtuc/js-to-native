@@ -1,0 +1,16 @@
+data $stringFmt = { b "%s\n" }
+data $i4 =  { b "consequent", b 0 }
+
+export function w $main() {
+  @start
+    %i1 =w ceqw 1, 1
+jnz %i1, @i2, @i3
+@i2
+     call $printf(l $stringFmt, w $i4)
+jmp @continue
+@i3
+ 
+@continue
+ 
+    ret 0
+}

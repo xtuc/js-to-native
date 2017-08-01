@@ -2,7 +2,7 @@
   "scripts": {
     "test": "mocha --compilers js:babel-register test/index",
     "clean": "rm -fv *.out *.s *.ssa",
-    "o": "babel-node cli.js > out.ssa && qbe -o asm.s out.ssa && cc asm.s"
+    "o": "babel-node cli.js test.js > out.ssa && qbe -o asm.s out.ssa && cc asm.s"
   },
   "dependencies": {
     "babel-cli": "^6.24.1",

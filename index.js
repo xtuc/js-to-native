@@ -8,6 +8,8 @@ const FLOW_NO_ERRORS = /No errors!/;
 let flowHasError = false;
 
 function run(filename, cb) {
+  process._filename = filename;
+  process._globalIdentifierCount = 0;
 
   const options = {
     plugins: [

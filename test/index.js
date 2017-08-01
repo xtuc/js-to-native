@@ -1,7 +1,7 @@
 const glob = require('glob');
 const run = require('../index');
 const path = require('path');
-const {readFileSync} = require('fs');
+const {writeFileSync, readFileSync} = require('fs');
 const diff = require('jest-diff');
 const {NO_DIFF_MESSAGE} = require('jest-diff/build/constants');
 
@@ -12,11 +12,19 @@ testSuites.forEach((suite) => {
   it(suite, () => new Promise((resolve) => {
     function check(code) {
       const expectedFile = path.join(path.dirname(suite), 'expected.ssa');
-      const expected = readFileSync(expectedFile, 'utf8');
+
+      let expected;
+      try {
+        expected = readFileSync(expectedFile, 'utf8');
+      } catch (e) {
+        expected = code;
+
+        writeFileSync(expectedFile, code);
+      }
 
       const out = diff(code.trim(), expected.trim());
 
-      if (out !== NO_DIFF_MESSAGE) {
+      if (out !== null && out !== NO_DIFF_MESSAGE) {
         throw new Error('\n' + out);
       }
 

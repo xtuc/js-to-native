@@ -3,10 +3,8 @@ const codeFrame = require('babel-code-frame').codeFrameColumns;
 const {execFileSync} = require('child_process');
 const flow = require('flow-bin');
 
-const FILENAME = 'test.js';
-
 function panic(msg, loc) {
-  const code = readFileSync(FILENAME, 'utf8');
+  const code = readFileSync(process._filename, 'utf8');
 
   console.error(codeFrame(code, loc));
 
@@ -16,7 +14,7 @@ function panic(msg, loc) {
 function getFlowTypeAtPos(loc) {
   const {line, column} = loc.end;
 
-  const stdout = execFileSync(flow, ['type-at-pos', FILENAME, line, column]);
+  const stdout = execFileSync(flow, ['type-at-pos', process._filename, line, column]);
 
   if (stdout.toString().match(/\(unknown\)|any/)) {
     panic('Missing type annotation', loc);
@@ -26,10 +24,10 @@ function getFlowTypeAtPos(loc) {
   }
 }
 
-let i = 0;
+process._globalIdentifierCount = 0;
 function generateGlobalIdentifier() {
-  i++;
-  return 'i' + i;
+  process._globalIdentifierCount++;
+  return 'i' + process._globalIdentifierCount;
 }
 
 function printInstructions(instructions: [Instruction]): string {

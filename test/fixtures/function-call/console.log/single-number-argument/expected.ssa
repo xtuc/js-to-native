@@ -1,0 +1,9 @@
+data $integerFmt = { b "%d\n" }
+
+export function w $main() {
+  @start
+    %i2 =w copy 0
+call $printf(l $integerFmt, w %i2)
+    ret 0
+}
+

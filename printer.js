@@ -1,21 +1,19 @@
 const traverse = require('babel-traverse').default;
-const assert = require('assert');
 const t = require('babel-types');
 // const dedent = require('dedent');
 // const runtime = require('./runtime');
 const genFunction = require('./IL/functions');
 const genBlock = require('./IL/blocks');
 const ILConsoleLog = require('./IL/console.log');
-const {integerEqInteger, stringEqString} = require('./IL/comparisons');
 const {createCondition} = require('./IL/conditions');
 const {writeLocal, createLocalVariable, createStringData, createLocalNumberData} = require('./IL/variable');
 const {createOperation} = require('./IL/builtin/arithmetic');
 const {maxNumber, negateNumber} = require('./IL/stdlib/number');
 const {printInstructions, generateGlobalIdentifier, getFlowTypeAtPos, panic} = require('./utils');
 
-function debug(...msg) {
-  return '# <------------ ' + msg.join(',');
-}
+// function debug(...msg) {
+//   return '# <------------ ' + msg.join(',');
+// }
 
 class Buffer {
 
@@ -159,6 +157,30 @@ const visitor = {
 
       append(`call $${callee.name}(${args.join(',')})`);
     }
+  },
+
+  BinaryExpression(path, {code, isMain}) {
+    const appendInstructions = (isMain ? code.appendMainInstructions : code.appendInstructions).bind(code);
+    const id = generateGlobalIdentifier();
+
+    const {left, right, operator} = path.node;
+
+    if (t.isIdentifier(left)) {
+      left.value = '%' + left.name;
+    }
+
+    if (t.isIdentifier(right)) {
+      right.value = '%' + right.name;
+    }
+
+    const op = createOperation(operator, left.value, right.value);
+    const store = writeLocal(id, '%' + op[op.length - 1].result);
+
+    appendInstructions([
+      ...createLocalNumberData(id, '0'),
+      ...op,
+      store,
+    ]);
   },
 
   FunctionDeclaration(path, {code}) {

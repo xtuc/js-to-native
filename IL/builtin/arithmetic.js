@@ -92,7 +92,7 @@ function createOperation(operator: string, left: string, right: string): [Instru
     op = mul('%' + loadLeft.result, '%' + loadRight.result);
     break;
   default:
-    throw 'Unsupported operation';
+    throw new Error('Unsupported operation');
   }
 
   return [
