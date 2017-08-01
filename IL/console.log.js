@@ -14,7 +14,11 @@ module.exports = function(path, id, append, code, appendInstructions) {
   if (t.isBinaryExpression(firstArg)) {
     const {left, right, operator, loc} = firstArg;
 
-    const operation = createOperation(operator, left.value, right.value);
+    const operation = createOperation(
+      operator,
+      left.value || '%' + left.name,
+      right.value || '%' + right.name
+    );
 
     if (typeof operation === 'undefined') {
       return panic('Unsupported arithmetic operation', loc);
@@ -22,8 +26,10 @@ module.exports = function(path, id, append, code, appendInstructions) {
 
     appendInstructions(operation);
 
-    firstArg = t.identifier(operation[operation.length - 1].result);
+    firstArg = t.identifier(operation[operation.length - 1].result.substr(1));
     globalIdentifier = false;
+
+    firstArg._ignore = true;
 
     // Virtually declare a new variable in scope
     path.scope.push({id: firstArg});

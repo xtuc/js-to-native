@@ -79,6 +79,11 @@ const visitor = {
     const [declaration] = path.node.declarations;
     const appendInstructions = (isMain ? code.appendMainInstructions : code.appendInstructions).bind(code);
 
+    // Generated during AST traversal
+    if (declaration.id._ignore === true) {
+      return path.skip();
+    }
+
     if (t.isNumericLiteral(declaration.init)) {
 
       appendInstructions(createLocalNumberData(declaration.id.name, declaration.init.value));
@@ -143,11 +148,7 @@ const visitor = {
       ILConsoleLog(path, id, append, code, appendInstructions);
     } else {
       const args = path.node.arguments.map((id) => {
-        // FIXME(sven): how to get the type of this node?
-        // Was created by a plugin
-
-        // const type = getFlowTypeAtPos(id.loc);
-        const type = 'number';
+        const type = getFlowTypeAtPos(id.loc);
 
         if (type === 'number') {
           return 'w %' + id.name;
@@ -228,9 +229,6 @@ const visitor = {
     const appendInstructions = (isMain ? code.appendMainInstructions : code.appendInstructions).bind(code);
 
     const localVar = createLocalVariable(t, path.node);
-
-    // Rename old access to new variable
-    // path.scope.rename(path.node.left.name, localVar.result);
 
     appendInstructions(localVar);
   },
