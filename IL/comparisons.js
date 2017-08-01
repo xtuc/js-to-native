@@ -37,8 +37,21 @@ function unsignedGreaterOrEqualIntegers(left: string, right: string): Instructio
   };
 }
 
+function signedGreaterOrEqualIntegers(left: string, right: string): Instruction {
+  const id = generateGlobalIdentifier();
+
+  return {
+    type: 'w',
+    name: 'cslew',
+    left,
+    right,
+    result: id,
+  };
+}
+
 module.exports = {
   integerEqInteger,
   stringEqString,
   unsignedGreaterOrEqualIntegers,
+  signedGreaterOrEqualIntegers,
 };

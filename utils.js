@@ -33,7 +33,7 @@ function generateGlobalIdentifier() {
 }
 
 function printInstructions(instructions: [Instruction]): string {
-  return instructions.reduce((acc: string, i: Instruction) => {
+  return instructions.reduce((acc: string, i: Instruction, index: number) => {
     let str = '';
 
     if (i.isData) {
@@ -57,7 +57,10 @@ function printInstructions(instructions: [Instruction]): string {
       str += `, ${i.right}`;
     }
 
-    str += '\n';
+    // avoid an extra new line at the end
+    if (instructions.length - 1 !== index) {
+      str += '\n';
+    }
 
     return acc + str;
   }, '');

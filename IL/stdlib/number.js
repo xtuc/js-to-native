@@ -8,4 +8,16 @@ function maxNumber(): [Instruction] {
   return createLocalNumberData(id, '9223372036854775807');
 }
 
-module.exports = {maxNumber};
+function negateNumber(value: number): Instruction {
+  const result = generateGlobalIdentifier();
+
+  return {
+    name: 'sub',
+    type: 'w',
+    left: '0',
+    right: '' + value,
+    result,
+  };
+}
+
+module.exports = {maxNumber, negateNumber};

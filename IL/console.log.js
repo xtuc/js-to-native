@@ -20,9 +20,9 @@ module.exports = function(path, id, append, code, appendInstructions) {
       return panic('Unsupported arithmetic operation', loc);
     }
 
-    appendInstructions([operation]);
+    appendInstructions(operation);
 
-    firstArg = t.identifier(operation.result);
+    firstArg = t.identifier(operation[operation.length - 1].result);
     globalIdentifier = false;
 
     // Virtually declare a new variable in scope

@@ -10,7 +10,7 @@ const {integerEqInteger, stringEqString} = require('./IL/comparisons');
 const {createCondition} = require('./IL/conditions');
 const {writeLocal, createLocalVariable, createStringData, createLocalNumberData} = require('./IL/variable');
 const {createOperation} = require('./IL/builtin/arithmetic');
-const {maxNumber} = require('./IL/stdlib/number');
+const {maxNumber, negateNumber} = require('./IL/stdlib/number');
 const {printInstructions, generateGlobalIdentifier, getFlowTypeAtPos, panic} = require('./utils');
 
 function debug(...msg) {
@@ -86,10 +86,15 @@ const visitor = {
 
       appendInstructions([createStringData(declaration.id.name, declaration.init.value)]);
     } else if (t.isUnaryExpression(declaration.init, {operator: '-'})) {
-      // negative numberLiteral
       const {argument} = declaration.init;
 
-      appendInstructions(createLocalNumberData(declaration.id.name, '-' + argument.value));
+      const negativeValue = negateNumber(argument.value);
+      const localVar = createLocalNumberData(declaration.id.name, '%' + negativeValue.result);
+
+      appendInstructions([
+        negativeValue,
+        ...localVar
+      ]);
     } else if (t.isBinaryExpression(declaration.init)) {
       const {left, right, operator} = declaration.init;
 
@@ -102,7 +107,7 @@ const visitor = {
       }
 
       const op = createOperation(operator, left.value, right.value);
-      const store = writeLocal(declaration.id.name, '%' + op[1].result);
+      const store = writeLocal(declaration.id.name, '%' + op[op.length - 1].result);
 
       appendInstructions([
         ...createLocalNumberData(declaration.id.name, '0'),

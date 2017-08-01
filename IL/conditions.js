@@ -1,7 +1,7 @@
 /* @flow */
 const {generateGlobalIdentifier, getFlowTypeAtPos, panic} = require('../utils');
 const {
-  unsignedGreaterOrEqualIntegers,
+  signedGreaterOrEqualIntegers,
   integerEqInteger,
 } = require('./comparisons');
 const {createLocalAssignement} = require('./variable');
@@ -48,9 +48,9 @@ function createCondition(t: Object, test: BabelASTNode): [Instruction] {
     } else if (operator === '>=') {
 
       res.push(
-        unsignedGreaterOrEqualIntegers(
-          left.value,
+        signedGreaterOrEqualIntegers(
           right.value,
+          left.value,
         ),
       );
     }

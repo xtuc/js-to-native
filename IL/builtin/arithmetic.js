@@ -75,27 +75,29 @@ function mul(left: string, right: string): Instruction {
 function createOperation(operator: string, left: string, right: string): [Instruction] {
   let op;
 
-  const load = left[0] === '%' ? loadLocal(left) : copyLocal(left);
+  const loadLeft = left[0] === '%' ? loadLocal(left) : copyLocal(left);
+  const loadRight = right[0] === '%' ? loadLocal(right) : copyLocal(right);
 
   switch (operator) {
   case '+':
-    op = add('%' + load.result, right);
+    op = add('%' + loadLeft.result, '%' + loadRight.result);
     break;
   case '-':
-    op = sub('%' + load.result, right);
+    op = sub('%' + loadLeft.result, '%' + loadRight.result);
     break;
   case '/':
-    op = div('%' + load.result, right);
+    op = div('%' + loadLeft.result, '%' + loadRight.result);
     break;
   case '*':
-    op = mul('%' + load.result, right);
+    op = mul('%' + loadLeft.result, '%' + loadRight.result);
     break;
   default:
     throw 'Unsupported operation';
   }
 
   return [
-    load,
+    loadLeft,
+    loadRight,
     op,
   ];
 }
