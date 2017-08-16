@@ -5,7 +5,7 @@ function copyLocal(id: string): Instruction {
   const result = generateGlobalIdentifier();
 
   return {
-    type: 'w',
+    type: 'l',
     name: 'copy',
     left: id,
     result,
@@ -14,7 +14,7 @@ function copyLocal(id: string): Instruction {
 
 function loadLocal(id: string): Instruction {
   const result = generateGlobalIdentifier();
-  const type = 'w'
+  const type = 'l'
 
   return {
     type,
@@ -28,7 +28,7 @@ function add(left: string, right: string): Instruction {
   const id = generateGlobalIdentifier();
 
   return {
-    type: 'w',
+    type: 'l',
     name: 'add',
     left,
     right,
@@ -40,7 +40,7 @@ function sub(left: string, right: string): Instruction {
   const id = generateGlobalIdentifier();
 
   return {
-    type: 'w',
+    type: 'l',
     name: 'sub',
     left,
     right,
@@ -52,7 +52,7 @@ function div(left: string, right: string): Instruction {
   const id = generateGlobalIdentifier();
 
   return {
-    type: 'w',
+    type: 'l',
     name: 'div',
     left,
     right,
@@ -64,7 +64,7 @@ function mul(left: string, right: string): Instruction {
   const id = generateGlobalIdentifier();
 
   return {
-    type: 'w',
+    type: 'l',
     name: 'mul',
     left,
     right,

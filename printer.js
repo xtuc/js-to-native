@@ -1,7 +1,5 @@
 const traverse = require('babel-traverse').default;
 const t = require('babel-types');
-// const dedent = require('dedent');
-// const runtime = require('./runtime');
 const genFunction = require('./IL/functions');
 const genBlock = require('./IL/blocks');
 const ILConsoleLog = require('./IL/console.log');
@@ -9,11 +7,8 @@ const {createCondition} = require('./IL/conditions');
 const {writeLocal, createLocalVariable, createStringData, createLocalNumberData} = require('./IL/variable');
 const {createOperation} = require('./IL/builtin/arithmetic');
 const {maxNumber, negateNumber} = require('./IL/stdlib/number');
+const {createComment} = require('./IL/comments.js');
 const {printInstructions, generateGlobalIdentifier, getFlowTypeAtPos, panic} = require('./utils');
-
-// function debug(...msg) {
-//   return '# <------------ ' + msg.join(',');
-// }
 
 class Buffer {
 
@@ -77,6 +72,20 @@ const visitor = {
     const [declaration] = path.node.declarations;
     const appendInstructions = (isMain ? code.appendMainInstructions : code.appendInstructions).bind(code);
 
+    if (process._debug === true) {
+      const source = path.getSource();
+
+      if (source) {
+        appendInstructions([
+          createComment(source)
+        ]);
+      } else {
+        appendInstructions([
+          createComment('VariableDeclaration')
+        ]);
+      }
+    }
+
     // Generated during AST traversal
     if (declaration.id._ignore === true) {
       return path.skip();
@@ -138,6 +147,20 @@ const visitor = {
     const append = (isMain ? code.appendMain : code.append).bind(code);
     const appendInstructions = (isMain ? code.appendMainInstructions : code.appendInstructions).bind(code);
 
+    if (process._debug === true) {
+      const source = path.getSource();
+
+      if (source) {
+        appendInstructions([
+          createComment(source)
+        ]);
+      } else {
+        appendInstructions([
+          createComment('CallExpression')
+        ]);
+      }
+    }
+
     if (
       t.isMemberExpression(callee) &&
       callee.object.name === 'console' &&
@@ -162,6 +185,20 @@ const visitor = {
   BinaryExpression(path, {code, isMain}) {
     const appendInstructions = (isMain ? code.appendMainInstructions : code.appendInstructions).bind(code);
     const id = generateGlobalIdentifier();
+
+    if (process._debug === true) {
+      const source = path.getSource();
+
+      if (source) {
+        appendInstructions([
+          createComment(source)
+        ]);
+      } else {
+        appendInstructions([
+          createComment('BinaryExpression')
+        ]);
+      }
+    }
 
     const {left, right, operator} = path.node;
 
@@ -221,6 +258,20 @@ const visitor = {
     const append = (isMain ? code.appendMain : code.append).bind(code);
     const appendInstructions = (isMain ? code.appendMainInstructions : code.appendInstructions).bind(code);
 
+    if (process._debug === true) {
+      const source = path.getSource();
+
+      if (source) {
+        appendInstructions([
+          createComment(source)
+        ]);
+      } else {
+        appendInstructions([
+          createComment('WhileStatement')
+        ]);
+      }
+    }
+
     const continueId = 'continue' + generateGlobalIdentifier();
     const loopId = 'loop' + generateGlobalIdentifier();
     const conditionId = 'condition' + generateGlobalIdentifier();
@@ -252,6 +303,20 @@ const visitor = {
 
     const localVar = createLocalVariable(t, path.node);
 
+    if (process._debug === true) {
+      const source = path.getSource();
+
+      if (source) {
+        appendInstructions([
+          createComment(source)
+        ]);
+      } else {
+        appendInstructions([
+          createComment('AssignmentExpression')
+        ]);
+      }
+    }
+
     appendInstructions(localVar);
   },
 
@@ -260,6 +325,20 @@ const visitor = {
 
     const append = (isMain ? code.appendMain : code.append).bind(code);
     const appendInstructions = (isMain ? code.appendMainInstructions : code.appendInstructions).bind(code);
+
+    if (process._debug === true) {
+      const source = path.getSource();
+
+      if (source) {
+        appendInstructions([
+          createComment(source)
+        ]);
+      } else {
+        appendInstructions([
+          createComment('IfStatement')
+        ]);
+      }
+    }
 
     const eq = createCondition(t, test);
     const conditionId = '%' + eq[eq.length - 1].result;

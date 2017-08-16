@@ -28,26 +28,20 @@
 //   console.log('loop test');
 // }
 
-// function fibonacci() {
-//   var num = 10;
-//   var a = 1, b = 0, temp = 0;
+function fibonacci() {
+  var num = 10;
+  var a = 1, b = 0, temp = 0;
 
-//   while (num >= 0) {
-//     temp = a;
-//     a = a + b;
-//     b = temp;
-//     num--;
+  while (num >= 0) {
+    temp = a;
+    a = a + b;
+    b = temp;
+    num--;
 
-//     console.log(b);
-//   }
+    console.log(b);
+  }
 
-//   return b;
-// }
+  return b;
+}
 
-// fibonacci();
-// console.log(1 - 1);
-
-let a = 0;
-const b = 1;
-
-a = b;
+fibonacci();

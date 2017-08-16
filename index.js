@@ -7,9 +7,10 @@ const flow = require('flow-bin');
 const FLOW_NO_ERRORS = /No errors!/;
 let flowHasError = false;
 
-function run(filename, cb) {
+function run(filename, cb, {debug} = {}) {
   process._filename = filename;
   process._globalIdentifierCount = 0;
+  process._debug = debug;
 
   const options = {
     plugins: [
@@ -56,11 +57,7 @@ function run(filename, cb) {
   function transpileIL() {
     const result = babel.transform(code, options);
 
-    if (cb) {
-      cb(result.code);
-    } else {
-      console.log(result.code);
-    }
+    cb(result.code);
   }
 }
 

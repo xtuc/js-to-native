@@ -1,11 +1,12 @@
+
+
 export function w $main() {
   @start
     %i1 =l alloc4 4
 storew 0, %i1
-%i2 =w copy 1
-%i3 =w copy 1
-%i4 =w div %i2, %i3
+%i2 =l copy 1
+%i3 =l copy 1
+%i4 =l div %i2, %i3
 storew %i4, %i1
     ret 0
 }
-

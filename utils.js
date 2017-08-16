@@ -34,6 +34,14 @@ function printInstructions(instructions: [Instruction]): string {
   return instructions.reduce((acc: string, i: Instruction, index: number) => {
     let str = '';
 
+
+    // Fail fast for comment
+    if (typeof i.comment !== 'undefined') {
+      i.comment = i.comment.split('\n').map((s) => '# ' + s).join('\n');
+
+      return acc + '\n' + i.comment;
+    }
+
     if (i.isData) {
       str += `data `;
     }
