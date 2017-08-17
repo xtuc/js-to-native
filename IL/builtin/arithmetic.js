@@ -14,7 +14,7 @@ function copyLocal(id: string): Instruction {
 
 function loadLocal(id: string): Instruction {
   const result = generateGlobalIdentifier();
-  const type = 'l'
+  const type = 'l';
 
   return {
     type,

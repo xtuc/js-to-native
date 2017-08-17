@@ -2,6 +2,7 @@ const babel = require('babel-core');
 const printer = require('./printer');
 const {readFileSync} = require('fs');
 const cp = require('child_process');
+const decache = require('decache');
 const flow = require('flow-bin');
 
 const FLOW_NO_ERRORS = /No errors!/;
@@ -11,6 +12,8 @@ function run(filename, cb, {debug} = {}) {
   process._filename = filename;
   process._globalIdentifierCount = 0;
   process._debug = debug;
+
+  decache("./IL/cache");
 
   const options = {
     plugins: [

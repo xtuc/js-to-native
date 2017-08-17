@@ -23,14 +23,15 @@ function logIdentifierString(id: string): [Instruction] {
 }
 
 function logIdentifierNumber(id: string, scope?: string = '$'): [Instruction] {
-  const loadWid = generateGlobalIdentifier();
+  // const loadWid = generateGlobalIdentifier();
+  const loadWid = id;
 
-  return [{
+  return [/*{
     type: 'w',
     name: 'loadw',
     left: '%' + id,
     result: loadWid,
-  },{
+  },*/{
     name: 'call',
     left: `$printf(l $integerFmt, w ${scope}${loadWid})`,
   }];

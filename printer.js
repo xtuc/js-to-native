@@ -1,6 +1,7 @@
 const traverse = require('babel-traverse').default;
 const t = require('babel-types');
 const genFunction = require('./IL/functions');
+const {pointers} = require('./IL/cache');
 const {createArguments} = require('./IL/functions');
 const genBlock = require('./IL/blocks');
 const ILConsoleLog = require('./IL/console.log');
@@ -93,6 +94,8 @@ const visitor = {
       return path.skip();
     }
 
+    pointers.add(declaration.id.name);
+
     if (t.isNumericLiteral(declaration.init)) {
 
       appendInstructions(createLocalNumberData(declaration.id.name, declaration.init.value));
@@ -131,7 +134,7 @@ const visitor = {
     } else if (t.isCallExpression(declaration.init)) {
       const {callee} = declaration.init;
       const id = '%' + generateGlobalIdentifier();
-      const args = createArguments(appendInstructions, declaration.init.arguments);
+      const args = createArguments(t, appendInstructions, declaration.init.arguments, path);
 
       append(`${id} =l call $${callee.name}(${args.join(', ')})`),
 
@@ -178,10 +181,14 @@ const visitor = {
       callee.property.name === 'log'
     ) {
       ILConsoleLog(path, id, append, code, appendInstructions);
+
+      path.skip();
     } else {
-      const args = createArguments(appendInstructions, path.node.arguments);
+      const args = createArguments(t, appendInstructions, path.node.arguments, path);
 
       append(`call $${callee.name}(${args.join(',')})`);
+
+      path.skip();
     }
   },
 

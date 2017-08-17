@@ -1,0 +1,9 @@
+export function w $main() {
+  @start
+    %i2 =l copy 2
+%i3 =l copy 1
+%i4 =l sub %i2, %i3
+call $test(w %i4)
+    ret 0
+}
+

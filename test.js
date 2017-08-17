@@ -1,4 +1,4 @@
-// declare function GC_malloc(nbBytes: number): number;
+declare function test(number): void;
 
 // function fibonacci() {
 //   var num = 10;
@@ -22,7 +22,6 @@
 
 // console.log(foo);
 
-declare function test(number, number, number): number;
-declare function log(any): any;
+const a = 0;
 
-const foo = test(1, 2, 3);
+test(a);

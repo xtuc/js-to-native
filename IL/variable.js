@@ -101,4 +101,4 @@ function createLocalVariable(
   }
 }
 
-module.exports = {createStringData, createLocalNumberData, createLocalVariable, writeLocal, createLocalAssignement};
+module.exports = {createStringData, createLocalNumberData, createLocalVariable, writeLocal, createLocalAssignement, loadLocal};
