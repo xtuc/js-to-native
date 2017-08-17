@@ -1,0 +1,11 @@
+
+function w $test(w %a,w %b) {
+  @start
+    
+    ret 0
+}
+export function w $main() {
+  @start
+    
+    ret 0
+}

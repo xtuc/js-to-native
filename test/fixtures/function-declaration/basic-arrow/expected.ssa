@@ -1,0 +1,7 @@
+
+
+export function w $main() {
+  @start
+    
+    ret 0
+}

@@ -13,12 +13,13 @@ function run(filename, cb, {debug} = {}) {
   process._globalIdentifierCount = 0;
   process._debug = debug;
 
-  decache("./IL/cache");
+  decache('./IL/cache');
 
   const options = {
     plugins: [
       require('./AST/flattenVariableDeclarations'),
       require('./AST/updateExpressionToAssignement'),
+      'transform-es2015-arrow-functions',
     ],
     parserOpts: {
       plugins: [
