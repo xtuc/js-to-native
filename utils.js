@@ -30,16 +30,16 @@ function generateGlobalIdentifier() {
   return 'i' + process._globalIdentifierCount;
 }
 
-function printInstructions(instructions: [Instruction]): string {
+function printInstructions(instructions: [Instruction], sep: string = '\n'): string {
   return instructions.reduce((acc: string, i: Instruction, index: number) => {
     let str = '';
 
 
     // Fail fast for comment
     if (typeof i.comment !== 'undefined') {
-      i.comment = i.comment.split('\n').map((s) => '# ' + s).join('\n');
+      i.comment = i.comment.split(sep).map((s) => '# ' + s).join(sep);
 
-      return acc + '\n' + i.comment;
+      return acc + sep + i.comment;
     }
 
     if (i.isData) {
@@ -65,7 +65,7 @@ function printInstructions(instructions: [Instruction]): string {
 
     // avoid an extra new line at the end
     if (instructions.length - 1 !== index) {
-      str += '\n';
+      str += sep;
     }
 
     return acc + str;

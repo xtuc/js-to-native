@@ -1,6 +1,7 @@
 const traverse = require('babel-traverse').default;
 const t = require('babel-types');
 const genFunction = require('./IL/functions');
+const {createArguments} = require('./IL/functions');
 const genBlock = require('./IL/blocks');
 const ILConsoleLog = require('./IL/console.log');
 const {createCondition} = require('./IL/conditions');
@@ -70,6 +71,7 @@ const visitor = {
 
   VariableDeclaration(path, {code, isMain}) {
     const [declaration] = path.node.declarations;
+    const append = (isMain ? code.appendMain : code.append).bind(code);
     const appendInstructions = (isMain ? code.appendMainInstructions : code.appendInstructions).bind(code);
 
     if (process._debug === true) {
@@ -126,6 +128,15 @@ const visitor = {
         ...op,
         store,
       ]);
+    } else if (t.isCallExpression(declaration.init)) {
+      const {callee} = declaration.init;
+      const id = '%' + generateGlobalIdentifier();
+      const args = createArguments(appendInstructions, declaration.init.arguments);
+
+      append(`${id} =l call $${callee.name}(${args.join(', ')})`),
+
+      appendInstructions(createLocalNumberData(declaration.id.name, id));
+      path.skip();
     } else {
       return panic(`Unsupported type (${declaration.id.type} = ${declaration.init.type})`, declaration.id.loc);
     }
@@ -168,24 +179,7 @@ const visitor = {
     ) {
       ILConsoleLog(path, id, append, code, appendInstructions);
     } else {
-      const args = path.node.arguments.map((id) => {
-        const type = getFlowTypeAtPos(id.loc);
-
-        // Has a value, create a binding
-        if (typeof id.value !== 'undefined') {
-          id.name = generateGlobalIdentifier();
-
-          appendInstructions(
-            createLocalNumberData(id.name, '' + id.value),
-          );
-        }
-
-        if (type === 'number') {
-          return 'w %' + id.name;
-        } else {
-          return panic('Unsupported type', id.loc);
-        }
-      });
+      const args = createArguments(appendInstructions, path.node.arguments);
 
       append(`call $${callee.name}(${args.join(',')})`);
     }
