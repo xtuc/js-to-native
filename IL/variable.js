@@ -1,5 +1,6 @@
 /* @flow */
 const {generateGlobalIdentifier, getFlowTypeAtPos, panic} = require('../utils');
+const {pointers} = require('./cache');
 const {createOperation} = require('./builtin/arithmetic');
 
 function createStringData(id: string, value: string): Instruction {
@@ -63,17 +64,24 @@ function loadLocal(id: string): Instruction {
 function createLocalVariable(
   t: Object,
   assignement: BabelASTNode,
-): [Instruction] {
+): [?Instruction] {
   const {left, right, loc} = assignement;
 
   if (t.isIdentifier(right)) {
-    const load = loadLocal('%' + right.name);
-    const write = writeLocal(left.name, '%' + load.result);
 
-    return [
-      load,
-      write,
-    ];
+    const res = [];
+
+    if (pointers.has(right.name)) {
+      const load = loadLocal('%' + right.name);
+
+      res.push(load);
+      right.name = load.result;
+    }
+
+    pointers.delete(right.name);
+    res.push(writeLocal(left.name, '%' + right.name));
+
+    return res;
   } else if (t.isBinaryExpression(right)) {
     const {left, right, operator} = assignement.right;
 

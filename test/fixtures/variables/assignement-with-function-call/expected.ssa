@@ -3,10 +3,11 @@
 export function w $main() {
   @start
     %i2 =l copy 1
-%i3 =l copy 2
-%i4 =l copy 3
-%i1 =l call $test(l %i2, l %i3, l %i4)
+%i1 =l call $a(l %i2)
 %foo =l alloc4 4
 storel %i1, %foo
+%i4 =l copy 1
+%i3 =l call $a(l %i4)
+storel %i3, %foo
     ret 0
 }

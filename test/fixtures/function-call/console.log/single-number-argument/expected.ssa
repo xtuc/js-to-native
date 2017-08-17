@@ -1,8 +1,8 @@
+
+
 export function w $main() {
   @start
-    %i2 =l alloc4 4
-storel 0, %i2
-call $test(w %i2)
+    %i2 =l copy 0
+call $test(l %i2)
     ret 0
 }
-

@@ -256,8 +256,7 @@ const visitor = {
 
   AssignmentExpression(path, {code, isMain}) {
     const appendInstructions = (isMain ? code.appendMainInstructions : code.appendInstructions).bind(code);
-
-    const localVar = createLocalVariable(t, path.node);
+    const append = (isMain ? code.appendMain : code.append).bind(code);
 
     if (process._debug === true) {
       const source = path.getSource();
@@ -272,6 +271,18 @@ const visitor = {
         ]);
       }
     }
+
+    if (t.isCallExpression(path.node.right)) {
+      const id = t.identifier(generateGlobalIdentifier());
+      const args = createArguments(t, appendInstructions, path.node.right.arguments, path);
+
+      append(`%${id.name} =l call $${path.node.right.callee.name}(${args.join(',')})`);
+
+      path.node.right = id;
+      path.scope.push({id});
+    }
+
+    const localVar = createLocalVariable(t, path.node, appendInstructions, path);
 
     appendInstructions(localVar);
   },

@@ -1,9 +1,10 @@
+
+
 export function w $main() {
   @start
     %a =l alloc4 4
 storel 0, %a
 %i2 =l loadl %a
-call $test(w %i2)
+call $test(l %i2)
     ret 0
 }
-

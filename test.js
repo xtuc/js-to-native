@@ -27,5 +27,8 @@ declare function GC_enable_incremental(): void;
 
 GC_enable_incremental();
 
-const foo = GC_malloc(1);
+let foo = GC_malloc(1);
+console.log(foo);
+
+foo = GC_malloc(1);
 console.log(foo);
