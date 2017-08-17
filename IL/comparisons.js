@@ -5,8 +5,8 @@ function integerEqInteger(left: string, right: string): Instruction {
   const id = generateGlobalIdentifier();
 
   return {
-    type: 'w',
-    name: 'ceqw',
+    type: 'l',
+    name: 'ceql',
     left,
     right,
     result: id,
@@ -40,8 +40,8 @@ function signedGreaterOrEqualIntegers(left: string, right: string): Instruction 
   const id = generateGlobalIdentifier();
 
   return {
-    type: 'w',
-    name: 'cslew',
+    type: 'l',
+    name: 'cslel',
     left,
     right,
     result: id,

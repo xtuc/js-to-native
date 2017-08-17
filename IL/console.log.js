@@ -1,8 +1,9 @@
 const t = require('babel-types');
 const runtime = require('./runtime');
+const {pointers} = require('./cache');
 const assert = require('assert');
-const {panic, getFlowTypeAtPos} = require('../utils');
 const {logNumber, logIdentifierString, logIdentifierNumber} = require('./stdlib/console');
+const {panic, getFlowTypeAtPos} = require('../utils');
 const {createOperation} = require('./builtin/arithmetic');
 const {createStringData} = require('./variable');
 
@@ -51,8 +52,10 @@ module.exports = function(path, id, append, code, appendInstructions) {
         globalIdentifier = false;
       }
 
+      const needLoad = pointers.has(firstArg.name);
+
       appendInstructions(
-        logIdentifierNumber(firstArg.name, globalIdentifier ? '$' : '%')
+        logIdentifierNumber(firstArg.name, globalIdentifier ? '$' : '%', needLoad)
       );
 
     } else {

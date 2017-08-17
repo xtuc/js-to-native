@@ -11,7 +11,7 @@ function logNumber(value: string): [Instruction] {
     result: id,
   }, {
     name: 'call',
-    left: `$printf(l $integerFmt, w %${id})`,
+    left: `$printf(l $integerFmt, l %${id})`,
   }];
 }
 
@@ -22,19 +22,34 @@ function logIdentifierString(id: string): [Instruction] {
   }];
 }
 
-function logIdentifierNumber(id: string, scope?: string = '$'): [Instruction] {
-  // const loadWid = generateGlobalIdentifier();
-  const loadWid = id;
+function logIdentifierNumber(
+  id: string,
+  scope?: string = '$',
+  needLoad: boolean = false
+): [Instruction] {
+  let loadedAt = id;
+  const res = [];
 
-  return [/*{
-    type: 'w',
-    name: 'loadw',
-    left: '%' + id,
-    result: loadWid,
-  },*/{
+  if (needLoad === true) {
+    const result = generateGlobalIdentifier();
+
+    res.push({
+      type: 'l',
+      name: 'loadl',
+      left: '%' + id,
+      result,
+    });
+
+    loadedAt = result;
+    scope = '%';
+  }
+
+  res.push({
     name: 'call',
-    left: `$printf(l $integerFmt, w ${scope}${loadWid})`,
-  }];
+    left: `$printf(l $integerFmt, l ${scope}${loadedAt})`,
+  });
+
+  return res;
 }
 
 module.exports = {logNumber, logIdentifierNumber, logIdentifierString};

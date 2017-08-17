@@ -22,7 +22,7 @@ function createLocalNumberData(id: string, value: string): [Instruction] {
     result: id,
   }, {
     type: '',
-    name: 'storew',
+    name: 'storel',
     left: value,
     right: '%' + id,
   }];
@@ -31,8 +31,8 @@ function createLocalNumberData(id: string, value: string): [Instruction] {
 function createLocalAssignement(id: string, valueId: string): Instruction {
 
   return {
-    type: 'w',
-    name: 'loadw',
+    type: 'l',
+    name: 'loadl',
     left: valueId,
     result: id,
   };
@@ -41,8 +41,8 @@ function createLocalAssignement(id: string, valueId: string): Instruction {
 function writeLocal(id: string, value: string): Instruction {
 
   return {
-    type: 'w',
-    name: 'storew',
+    type: 'l',
+    name: 'storel',
     left: value,
     right: '%' + id,
   };
@@ -50,7 +50,7 @@ function writeLocal(id: string, value: string): Instruction {
 
 function loadLocal(id: string): Instruction {
   const result = generateGlobalIdentifier();
-  const type = 'w';
+  const type = 'l';
 
   return {
     type,
