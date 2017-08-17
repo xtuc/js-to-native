@@ -1,0 +1,21 @@
+data $i1 =  { b "test", b 0 }
+data $i2 =  { b "test", b 0 }
+
+data $i6 =  { b "consequent", b 0 }
+
+data $i7 =  { b "alternate", b 0 }
+
+export function w $main() {
+  @start
+    %i3 =w call $isStringEqual(l $i1, l $i2)
+jnz %i3, @i4, @i5
+@i4
+     call $printf(l $stringFmt, w $i6)
+jmp @continue
+@i5
+     call $printf(l $stringFmt, w $i7)
+jmp @continue
+@continue
+ 
+    ret 0
+}

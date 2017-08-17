@@ -1,4 +1,4 @@
-declare function test(number): void;
+// declare function test(number): void;
 
 // function fibonacci() {
 //   var num = 10;
@@ -22,6 +22,13 @@ declare function test(number): void;
 
 // console.log(foo);
 
-const a = 0;
+// const a = 0;
 
-test(a);
+// test(a);
+
+if ("test" === "test") {
+    console.log('consequent');
+} else {
+    console.log('alternate');
+}
+

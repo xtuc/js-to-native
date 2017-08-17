@@ -10,62 +10,8 @@ const {writeLocal, createLocalVariable, createStringData, createLocalNumberData}
 const {createOperation} = require('./IL/builtin/arithmetic');
 const {maxNumber, negateNumber} = require('./IL/stdlib/number');
 const {createComment} = require('./IL/comments.js');
-const {printInstructions, generateGlobalIdentifier, getFlowTypeAtPos, panic} = require('./utils');
-
-class Buffer {
-
-  constructor() {
-    this._buf = [];
-    this._bufMain = [];
-    this._bufGlobal = [];
-  }
-
-  getWithMain() {
-
-    const main = genFunction.main(
-      this._bufMain.join('\n')
-    );
-
-    return this._bufGlobal.join('\n') + '\n' + this._buf.join('\n') + '\n' + main;
-  }
-
-  get() {
-    return this._buf.join('\n');
-  }
-
-  getMain() {
-    return this._bufMain.join('\n');
-  }
-
-  getGlobals() {
-    return this._bufGlobal.join('\n');
-  }
-
-  append(str) {
-    this._buf.push(str);
-  }
-
-  appendInstructions(i: [Instruction]) {
-    this._buf.push(printInstructions(i));
-  }
-
-  appendGlobal(str) {
-    this._bufGlobal.push(str);
-  }
-
-  appendGlobalInstructions(i: [Instruction]) {
-    this._bufGlobal.push(printInstructions(i));
-  }
-
-  appendMain(str) {
-    this._bufMain.push(str);
-  }
-
-  appendMainInstructions(i: [Instruction]) {
-    this._bufMain.push(printInstructions(i));
-  }
-
-}
+const {generateGlobalIdentifier, getFlowTypeAtPos, panic} = require('./utils');
+const Buffer = require('./buffer');
 
 const visitor = {
   noScope: true,
@@ -290,7 +236,7 @@ const visitor = {
 
     append(genBlock.empty(conditionId));
 
-    const eq = createCondition(t, test);
+    const eq = createCondition(t, test, code.appendGlobalInstructions.bind(code));
     appendInstructions(eq);
 
     // Loop or continue
@@ -350,7 +296,7 @@ const visitor = {
       }
     }
 
-    const eq = createCondition(t, test);
+    const eq = createCondition(t, test, code.appendGlobalInstructions.bind(code));
     const conditionId = '%' + eq[eq.length - 1].result;
 
     appendInstructions(eq);

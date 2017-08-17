@@ -13,14 +13,13 @@ function integerEqInteger(left: string, right: string): Instruction {
   };
 }
 
-function stringEqString(left: string, right: string): Instruction {
+function stringEqString(lid: string, rid: string): Instruction {
   const id = generateGlobalIdentifier();
 
   return {
     type: 'w',
-    name: 'ceql',
-    left,
-    right,
+    name: 'call',
+    left: `$isStringEqual(l ${lid}, l ${rid})`,
     result: id,
   };
 }

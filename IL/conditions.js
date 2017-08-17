@@ -1,8 +1,10 @@
 /* @flow */
+const {createStringData} = require('./variable');
 const {generateGlobalIdentifier, getFlowTypeAtPos, panic} = require('../utils');
 const {
   signedGreaterOrEqualIntegers,
   integerEqInteger,
+  stringEqString,
 } = require('./comparisons');
 const {createLocalAssignement} = require('./variable');
 
@@ -14,7 +16,7 @@ function createConstantFalseCondition(): Instruction {
   return integerEqInteger('0', '1');
 }
 
-function createCondition(t: Object, test: BabelASTNode): [Instruction] {
+function createCondition(t: Object, test: BabelASTNode, appendGlobalInstructions: any): [Instruction] {
   const {left, right, operator} = test;
 
   if (
@@ -57,6 +59,21 @@ function createCondition(t: Object, test: BabelASTNode): [Instruction] {
 
     return res;
 
+  } else if (
+    getFlowTypeAtPos(left.loc) === 'string' &&
+    getFlowTypeAtPos(right.loc) === 'string'
+  ) {
+    const leftGlobalString = createStringData(generateGlobalIdentifier(), left.value)
+    const rightGlobalString = createStringData(generateGlobalIdentifier(), right.value)
+
+    appendGlobalInstructions([
+      leftGlobalString,
+      rightGlobalString,
+    ]);
+
+    return [
+      stringEqString(leftGlobalString.result, rightGlobalString.result),
+    ];
   } else if (t.isBooleanLiteral(test, {value: true})) {
 
     return createConstantTrueCondition();
