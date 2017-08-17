@@ -171,6 +171,15 @@ const visitor = {
       const args = path.node.arguments.map((id) => {
         const type = getFlowTypeAtPos(id.loc);
 
+        // Has a value, create a binding
+        if (typeof id.value !== 'undefined') {
+          id.name = generateGlobalIdentifier();
+
+          appendInstructions(
+            createLocalNumberData(id.name, '' + id.value),
+          );
+        }
+
         if (type === 'number') {
           return 'w %' + id.name;
         } else {

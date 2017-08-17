@@ -1,1 +1,3 @@
-console.log(0);
+declare function test(number): number;
+
+test(0);
