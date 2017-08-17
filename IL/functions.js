@@ -2,7 +2,7 @@ const dedent = require('dedent');
 const assert = require('assert');
 const {panic, getFlowTypeAtPos, generateGlobalIdentifier} = require('../utils');
 const {createLocalNumberData, loadLocal} = require('./variable');
-const {createOperation} = require('./builtin/arithmetic');
+const {createOperation, copyLocal} = require('./builtin/arithmetic');
 const {pointers} = require('./cache');
 
 function _function(name, body, returnType = 'w', args = []) {
@@ -25,6 +25,22 @@ function createArguments(t: Object, appendInstructions: any, args: [Object], pat
   return args.map((id) => {
     let globalIdentifier = true;
     const argType = getFlowTypeAtPos(id.loc);
+
+    if (t.isNumericLiteral(id)) {
+      const copy = copyLocal(id.value);
+      const idOldLoc = id.loc;
+
+
+      id = t.identifier(copy.result);
+      id.loc = idOldLoc;
+      id._ignore = true;
+
+      globalIdentifier = false;
+
+      // Virtually declare a new variable in scope
+      path.scope.push({id: id});
+      appendInstructions([copy]);
+    }
 
     if (t.isBinaryExpression(id)) {
       const {left, right, operator, loc} = id;
@@ -83,11 +99,6 @@ function createArguments(t: Object, appendInstructions: any, args: [Object], pat
         // appendInstructions(
         //   logIdentifierNumber(id.name, globalIdentifier ? '$' : '%')
         // );
-
-      } else {
-        // const value = id.value;
-
-        // appendInstructions(logNumber(value));
       }
 
     } else if (argType === 'string') {
@@ -120,7 +131,7 @@ function createArguments(t: Object, appendInstructions: any, args: [Object], pat
     }
 
     if (type === 'number') {
-      return 'w %' + id.name;
+      return 'l %' + id.name;
     } else {
       return panic('Unsupported type', id.loc);
     }

@@ -1,18 +1,31 @@
-function fibonacci() {
-  var num = 50;
-  var a = 1, b = 0, temp = 0;
+declare function GC_malloc(nbBytes: number): number;
+declare function GC_malloc_atomic(nbBytes: number): number;
+declare function GC_realloc(object: Object, new_size: number): number;
+declare function GC_free(object: Object): void;
+declare function GC_expand_hp(bytes: number): void;
+declare function GC_malloc_ignore_off_page(bytes: number): void;
+declare function GC_set_warn_proc(proc: Object): void;
+declare function GC_enable_incremental(): void;
 
-  while (num >= 0) {
-    temp = a;
-    a = a + b;
-    b = temp;
-    num--;
+// function fibonacci() {
+//   var num = 50;
+//   var a = 1, b = 0, temp = 0;
 
-    console.log(b);
-  }
+//   while (num >= 0) {
+//     temp = a;
+//     a = a + b;
+//     b = temp;
+//     num--;
 
-  return b;
-}
+//     console.log(b);
+//   }
 
-fibonacci();
+//   return b;
+// }
 
+// fibonacci();
+
+GC_enable_incremental();
+
+const foo = GC_malloc(1);
+console.log(foo);

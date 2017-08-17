@@ -102,4 +102,4 @@ function createOperation(operator: string, left: string, right: string): [Instru
   ];
 }
 
-module.exports = {createOperation};
+module.exports = {createOperation, copyLocal};
