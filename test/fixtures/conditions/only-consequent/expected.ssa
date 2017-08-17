@@ -3,7 +3,7 @@ data $i4 =  { b "consequent", b 0 }
 
 export function w $main() {
   @start
-    %i1 =w ceqw 1, 1
+    %i1 =l ceql 1, 1
 jnz %i1, @i2, @i3
 @i2
      call $printf(l $stringFmt, w $i4)

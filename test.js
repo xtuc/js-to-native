@@ -1,5 +1,5 @@
 function fibonacci() {
-  var num = 10;
+  var num = 50;
   var a = 1, b = 0, temp = 0;
 
   while (num >= 0) {

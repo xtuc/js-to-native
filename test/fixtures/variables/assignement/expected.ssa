@@ -3,10 +3,10 @@
 export function w $main() {
   @start
     %a =l alloc4 4
-storew 0, %a
+storel 0, %a
 %b =l alloc4 4
-storew 1, %b
-%i1 =w loadw %b
-storew %i1, %a
+storel 1, %b
+%i1 =l loadl %b
+storel %i1, %a
     ret 0
 }

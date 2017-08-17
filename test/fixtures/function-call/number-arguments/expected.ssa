@@ -1,14 +1,14 @@
 export function w $main() {
   @start
     %i2 =l alloc4 4
-storew 1, %i2
+storel 1, %i2
 %i3 =l alloc4 4
-storew 2, %i3
+storel 2, %i3
 %i4 =l alloc4 4
-storew 3, %i4
+storel 3, %i4
 %i1 =l call $test(w %i2, w %i3, w %i4)
 %foo =l alloc4 4
-storew %i1, %foo
+storel %i1, %foo
     ret 0
 }
 

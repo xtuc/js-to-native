@@ -5,7 +5,7 @@ data $i5 =  { b "alternate", b 0 }
 
 export function w $main() {
   @start
-    %i1 =w cslew 1, 0
+    %i1 =l cslel 1, 0
 jnz %i1, @i2, @i3
 @i2
      call $printf(l $stringFmt, w $i4)

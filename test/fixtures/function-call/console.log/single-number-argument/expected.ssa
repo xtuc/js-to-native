@@ -1,7 +1,7 @@
 export function w $main() {
   @start
     %i2 =l alloc4 4
-storew 0, %i2
+storel 0, %i2
 call $test(w %i2)
     ret 0
 }
