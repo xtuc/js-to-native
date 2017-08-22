@@ -145,6 +145,40 @@ const visitor = {
       ILConsoleLog(path, id, append, code, appendInstructions);
 
       path.skip();
+    } else if (t.isFunctionExpression(callee)) {
+      const {body} = callee;
+      let {params} = callee;
+
+      if (params.length > 0) {
+
+        params = params.map(function (param) {
+          const type = getFlowTypeAtPos(param.loc);
+
+          if (type === 'number') {
+            return 'w %' + param.name;
+          } else {
+            return panic('Unsupported type', param.loc);
+          }
+
+        });
+      }
+
+      const state = {isMain: false, code: new Buffer};
+      const id = generateGlobalIdentifier();
+
+      traverse(body, visitor, null, state);
+
+      code.append(genFunction._function(id,
+        state.code.get(),
+        'w',
+        params,
+      ));
+
+      code.appendGlobal(state.code.getGlobals());
+
+      append(`call $${id}()`);
+
+      path.skip();
     } else {
       const args = createArguments(t, appendInstructions, path.node.arguments, path);
 
