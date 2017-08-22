@@ -8,6 +8,7 @@ const ILConsoleLog = require('./IL/console.log');
 const {createCondition} = require('./IL/conditions');
 const {writeLocal, createLocalVariable, createStringData, createLocalNumberData} = require('./IL/variable');
 const {createOperation} = require('./IL/builtin/arithmetic');
+const {createStrictComparaison} = require('./IL/comparisons');
 const {maxNumber, negateNumber} = require('./IL/stdlib/number');
 const {createComment} = require('./IL/comments.js');
 const {generateGlobalIdentifier, getFlowTypeAtPos, panic} = require('./utils');
@@ -69,14 +70,26 @@ const visitor = {
         right.value = '%' + right.name;
       }
 
-      const op = createOperation(operator, left.value, right.value);
-      const store = writeLocal(declaration.id.name, '%' + op[op.length - 1].result);
+      // It's a comparaison
+      if (operator === '===') {
 
-      appendInstructions([
-        ...createLocalNumberData(declaration.id.name, '0'),
-        ...op,
-        store,
-      ]);
+        appendInstructions([
+          createStrictComparaison(declaration.id.name, left.value, right.value),
+        ]);
+
+      } else { // It's arithmetic
+
+        const op = createOperation(operator, left.value, right.value);
+        const store = writeLocal(declaration.id.name, '%' + op[op.length - 1].result);
+
+        appendInstructions([
+          ...createLocalNumberData(declaration.id.name, '0'),
+          ...op,
+          store,
+        ]);
+      }
+
+      path.skip();
     } else if (t.isCallExpression(declaration.init)) {
       const {callee} = declaration.init;
       const id = '%' + generateGlobalIdentifier();
@@ -87,7 +100,10 @@ const visitor = {
       appendInstructions(createLocalNumberData(declaration.id.name, id));
       path.skip();
     } else {
-      return panic(`Unsupported type (${declaration.id.type} = ${declaration.init.type})`, declaration.id.loc);
+      return panic(
+        `Unsupported type (${declaration.id.type} = ${declaration.init.type})`,
+         declaration.id.loc
+      );
     }
   },
 

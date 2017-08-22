@@ -35,6 +35,9 @@ class Buffer {
   }
 
   appendInstructions(i: [Instruction]) {
+    // Don't need to print onlyIdentifier
+    i = i.filter((x) => x.onlyIdentifier !== true);
+
     this._buf.push(printInstructions(i));
   }
 
@@ -43,6 +46,8 @@ class Buffer {
   }
 
   appendGlobalInstructions(i: [Instruction]) {
+    i = i.filter((x) => x.onlyIdentifier !== true);
+
     this._bufGlobal.push(printInstructions(i));
   }
 
@@ -51,6 +56,8 @@ class Buffer {
   }
 
   appendMainInstructions(i: [Instruction]) {
+    i = i.filter((x) => x.onlyIdentifier !== true);
+
     this._bufMain.push(printInstructions(i));
   }
 

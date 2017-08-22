@@ -34,6 +34,10 @@ function printInstructions(instructions: [Instruction], sep: string = '\n'): str
   return instructions.reduce((acc: string, i: Instruction, index: number) => {
     let str = '';
 
+    // Fail fast for only identifier
+    if (i.onlyIdentifier === true) {
+      return i.result;
+    }
 
     // Fail fast for comment
     if (typeof i.comment !== 'undefined') {

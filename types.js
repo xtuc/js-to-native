@@ -9,6 +9,7 @@ type Instruction = {|
   right?: string,
   result: string,
   isGlobal?: boolean,
+  onlyIdentifier?: boolean,
   isData?: boolean,
 |};
 

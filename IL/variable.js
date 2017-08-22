@@ -99,14 +99,29 @@ function createLocalVariable(
     return [
       ...op,
       store,
-    ]
+    ];
   } else if (t.isNumericLiteral(right)) {
     const {left, right} = assignement;
 
-    return [ writeLocal(left.name, right.value) ];
+    return [writeLocal(left.name, right.value)];
   } else {
-    return panic('Unsupported assignement ('+ left.type +' = '+ right.type +')', loc);
+    return panic('Unsupported assignement (' + left.type + ' = ' + right.type + ')', loc);
   }
 }
 
-module.exports = {createStringData, createLocalNumberData, createLocalVariable, writeLocal, createLocalAssignement, loadLocal};
+function identifier(name: string): Instruction {
+  return {
+    onlyIdentifier: true,
+    result: name,
+  };
+}
+
+module.exports = {
+  createStringData,
+  createLocalNumberData,
+  createLocalVariable,
+  writeLocal,
+  createLocalAssignement,
+  loadLocal,
+  identifier,
+};

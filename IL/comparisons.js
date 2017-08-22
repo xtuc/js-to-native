@@ -48,7 +48,18 @@ function signedGreaterOrEqualIntegers(left: string, right: string): Instruction 
   };
 }
 
+function createStrictComparaison(name: string, left: string, right: string): Instruction {
+  const res = integerEqInteger(left, right);
+
+  // Rename result
+  res.result = name;
+
+  return res;
+}
+
 module.exports = {
+  createStrictComparaison,
+
   integerEqInteger,
   stringEqString,
   unsignedGreaterOrEqualIntegers,

@@ -25,4 +25,10 @@ declare function GC_enable_incremental(): void;
 
 // fibonacci();
 
+const a = 0 === 1;
 
+if (a) {
+  console.log('consequent');
+} else {
+  console.log('alternate');
+}

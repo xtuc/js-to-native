@@ -1,5 +1,5 @@
 /* @flow */
-const {createStringData} = require('./variable');
+const {createStringData, identifier} = require('./variable');
 const {generateGlobalIdentifier, getFlowTypeAtPos, panic} = require('../utils');
 const {
   signedGreaterOrEqualIntegers,
@@ -20,6 +20,13 @@ function createCondition(t: Object, test: BabelASTNode, appendGlobalInstructions
   const {left, right, operator} = test;
 
   if (
+    t.isIdentifier(test) &&
+    getFlowTypeAtPos(test.loc) === 'boolean'
+  ) {
+    return [
+      identifier(test.name)
+    ];
+  } else if (
     getFlowTypeAtPos(left.loc) === 'number' &&
     getFlowTypeAtPos(right.loc) === 'number'
   ) {
@@ -63,8 +70,8 @@ function createCondition(t: Object, test: BabelASTNode, appendGlobalInstructions
     getFlowTypeAtPos(left.loc) === 'string' &&
     getFlowTypeAtPos(right.loc) === 'string'
   ) {
-    const leftGlobalString = createStringData(generateGlobalIdentifier(), left.value)
-    const rightGlobalString = createStringData(generateGlobalIdentifier(), right.value)
+    const leftGlobalString = createStringData(generateGlobalIdentifier(), left.value);
+    const rightGlobalString = createStringData(generateGlobalIdentifier(), right.value);
 
     appendGlobalInstructions([
       leftGlobalString,
