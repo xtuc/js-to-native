@@ -25,10 +25,4 @@ declare function GC_enable_incremental(): void;
 
 // fibonacci();
 
-GC_enable_incremental();
 
-let foo = GC_malloc(1);
-console.log(foo);
-
-foo = GC_malloc(1);
-console.log(foo);
