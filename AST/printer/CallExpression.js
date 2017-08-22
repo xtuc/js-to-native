@@ -1,8 +1,7 @@
 const t = require('babel-types');
 const traverse = require('babel-traverse').default;
 
-const {createComment} = require('../../IL/comments.js');
-const {createArguments, _function} = require('../../IL/functions');
+const IL = require('../../IL');
 const ILConsoleLog = require('../../IL/console.log');
 const {generateGlobalIdentifier, getFlowTypeAtPos, panic} = require('../../utils');
 const CodeBuffer = require('../../buffer');
@@ -20,9 +19,9 @@ module.exports = function(path, {code, isMain}) {
     const source = path.getSource();
 
     if (source) {
-      appendInstructions([createComment(source)]);
+      appendInstructions([IL.comments.createComment(source)]);
     } else {
-      appendInstructions([createComment('CallExpression')]);
+      appendInstructions([IL.comments.createComment('CallExpression')]);
     }
   }
 
@@ -56,7 +55,7 @@ module.exports = function(path, {code, isMain}) {
 
     const state = {isMain: false, code: new CodeBuffer()};
     const id = generateGlobalIdentifier();
-    const args = createArguments(
+    const args = IL.functions.createArguments(
       t,
       appendInstructions,
       path.node.arguments,
@@ -67,7 +66,7 @@ module.exports = function(path, {code, isMain}) {
     const {visitor} = require('./index');
     traverse(body, visitor, null, state);
 
-    code.append(_function(id, state.code.get(), 'w', params));
+    code.append(IL.functions._function(id, state.code.get(), 'w', params));
 
     code.appendGlobal(state.code.getGlobals());
 
@@ -75,7 +74,7 @@ module.exports = function(path, {code, isMain}) {
 
     path.skip();
   } else {
-    const args = createArguments(
+    const args = IL.functions.createArguments(
       t,
       appendInstructions,
       path.node.arguments,

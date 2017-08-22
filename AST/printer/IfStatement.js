@@ -1,9 +1,7 @@
 const t = require('babel-types');
 const traverse = require('babel-traverse').default;
 
-const genBlock = require('../../IL/blocks');
-const {createComment} = require('../../IL/comments.js');
-const {createCondition} = require('../../IL/conditions');
+const IL = require('../../IL');
 const {generateGlobalIdentifier} = require('../../utils');
 const CodeBuffer = require('../../buffer');
 
@@ -20,13 +18,13 @@ module.exports = function(path, {code, isMain}) {
     const source = path.getSource();
 
     if (source) {
-      appendInstructions([createComment(source)]);
+      appendInstructions([IL.comments.createComment(source)]);
     } else {
-      appendInstructions([createComment('IfStatement')]);
+      appendInstructions([IL.comments.createComment('IfStatement')]);
     }
   }
 
-  const eq = createCondition(t, test, code.appendGlobalInstructions.bind(code));
+  const eq = IL.conditions.createCondition(t, test, code.appendGlobalInstructions.bind(code));
   const conditionId = '%' + eq[eq.length - 1].result;
 
   appendInstructions(eq);
@@ -42,7 +40,7 @@ module.exports = function(path, {code, isMain}) {
 
   traverse(consequent, visitor, null, consequentState);
 
-  append(genBlock.block(consequentBlockid, consequentState.code.get()));
+  append(IL.blocks.block(consequentBlockid, consequentState.code.get()));
   append('jmp @continue');
 
   code.appendGlobal(consequentState.code.getGlobals());
@@ -53,15 +51,15 @@ module.exports = function(path, {code, isMain}) {
 
     traverse(alternate, visitor, null, alternateState);
 
-    append(genBlock.block(alternateBlockid, alternateState.code.get()));
+    append(IL.blocks.block(alternateBlockid, alternateState.code.get()));
     append('jmp @continue');
 
     code.appendGlobal(alternateState.code.getGlobals());
   } else {
-    append(genBlock.empty(alternateBlockid));
+    append(IL.blocks.empty(alternateBlockid));
   }
 
-  append(genBlock.empty('continue'));
+  append(IL.blocks.empty('continue'));
 
   path.skip();
 };

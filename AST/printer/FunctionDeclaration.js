@@ -1,7 +1,7 @@
 const traverse = require('babel-traverse').default;
 
 const {getFlowTypeAtPos, panic} = require('../../utils');
-const genFunction = require('../../IL/functions');
+const IL = require('../../IL');
 const CodeBuffer = require('../../buffer');
 
 module.exports = function(path, {code}) {
@@ -25,7 +25,7 @@ module.exports = function(path, {code}) {
     });
   }
 
-  code.append(genFunction._function(id.name, state.code.get(), 'w', params));
+  code.append(IL.functions._function(id.name, state.code.get(), 'w', params));
 
   code.appendGlobal(state.code.getGlobals());
 

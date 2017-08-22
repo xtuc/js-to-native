@@ -1,9 +1,7 @@
 const traverse = require('babel-traverse').default;
 const t = require('babel-types');
 
-const {createComment} = require('../../IL/comments.js');
-const {createCondition} = require('../../IL/conditions');
-const genBlock = require('../../IL/blocks');
+const IL = require('../../IL');
 const {generateGlobalIdentifier} = require('../../utils');
 const CodeBuffer = require('../../buffer');
 
@@ -18,9 +16,9 @@ module.exports = function(path, {code, isMain}) {
     const source = path.getSource();
 
     if (source) {
-      appendInstructions([createComment(source)]);
+      appendInstructions([IL.comments.createComment(source)]);
     } else {
-      appendInstructions([createComment('WhileStatement')]);
+      appendInstructions([IL.comments.createComment('WhileStatement')]);
     }
   }
 
@@ -30,9 +28,9 @@ module.exports = function(path, {code, isMain}) {
 
   const state = {isMain: false, code: new CodeBuffer()};
 
-  append(genBlock.empty(conditionId));
+  append(IL.blocks.empty(conditionId));
 
-  const eq = createCondition(t, test, code.appendGlobalInstructions.bind(code));
+  const eq = IL.conditions.createCondition(t, test, code.appendGlobalInstructions.bind(code));
   appendInstructions(eq);
 
   // Loop or continue
@@ -42,11 +40,11 @@ module.exports = function(path, {code, isMain}) {
   const {visitor} = require('./index');
   traverse(body, visitor, null, state);
 
-  append(genBlock.block(loopId, state.code.get()));
+  append(IL.blocks.block(loopId, state.code.get()));
   code.appendGlobal(state.code.getGlobals());
 
   append('jmp @' + conditionId);
 
-  append(genBlock.empty(continueId));
+  append(IL.blocks.empty(continueId));
   path.skip();
 };

@@ -1,4 +1,4 @@
-const {maxNumber} = require('../../IL/stdlib/number');
+const IL = require('../../IL');
 
 module.exports = function(path, {code, isMain}) {
   const {object, property} = path.node;
@@ -7,6 +7,6 @@ module.exports = function(path, {code, isMain}) {
     : code.appendInstructions).bind(code);
 
   if (object.mame === 'Number' && property.name === 'MAX_VALUE') {
-    appendInstructions(maxNumber());
+    appendInstructions(IL.stdlib.maxNumber());
   }
 };

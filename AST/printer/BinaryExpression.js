@@ -1,8 +1,6 @@
 const t = require('babel-types');
 const {generateGlobalIdentifier} = require('../../utils');
-const {createOperation} = require('../../IL/builtin/arithmetic');
-const {createComment} = require('../../IL/comments.js');
-const {writeLocal, createLocalNumberData} = require('../../IL/variable');
+const IL = require('../../IL');
 
 module.exports = function(path, {code, isMain}) {
   const appendInstructions = (isMain
@@ -14,9 +12,9 @@ module.exports = function(path, {code, isMain}) {
     const source = path.getSource();
 
     if (source) {
-      appendInstructions([createComment(source)]);
+      appendInstructions([IL.comments.createComment(source)]);
     } else {
-      appendInstructions([createComment('BinaryExpression')]);
+      appendInstructions([IL.comments.createComment('BinaryExpression')]);
     }
   }
 
@@ -30,8 +28,8 @@ module.exports = function(path, {code, isMain}) {
     right.value = '%' + right.name;
   }
 
-  const op = createOperation(operator, left.value, right.value);
-  const store = writeLocal(id, '%' + op[op.length - 1].result);
+  const op = IL.builtin.arithmetic.createOperation(operator, left.value, right.value);
+  const store = IL.variable.writeLocal(id, '%' + op[op.length - 1].result);
 
-  appendInstructions([...createLocalNumberData(id, '0'), ...op, store]);
+  appendInstructions([...IL.variable.createLocalNumberData(id, '0'), ...op, store]);
 };

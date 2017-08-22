@@ -1,9 +1,7 @@
 const t = require('babel-types');
 
-const {createArguments} = require('../../IL/functions');
-const {createComment} = require('../../IL/comments.js');
+const IL = require('../../IL');
 const {generateGlobalIdentifier} = require('../../utils');
-const {createLocalVariable} = require('../../IL/variable');
 
 module.exports = function(path, {code, isMain}) {
   const appendInstructions = (isMain
@@ -15,15 +13,15 @@ module.exports = function(path, {code, isMain}) {
     const source = path.getSource();
 
     if (source) {
-      appendInstructions([createComment(source)]);
+      appendInstructions([IL.comments.createComment(source)]);
     } else {
-      appendInstructions([createComment('AssignmentExpression')]);
+      appendInstructions([IL.comments.createComment('AssignmentExpression')]);
     }
   }
 
   if (t.isCallExpression(path.node.right)) {
     const id = t.identifier(generateGlobalIdentifier());
-    const args = createArguments(
+    const args = IL.functions.createArguments(
       t,
       appendInstructions,
       path.node.right.arguments,
@@ -38,7 +36,7 @@ module.exports = function(path, {code, isMain}) {
     path.scope.push({id});
   }
 
-  const localVar = createLocalVariable(t, path.node, appendInstructions, path);
+  const localVar = IL.variable.createLocalVariable(t, path.node, appendInstructions, path);
 
   appendInstructions(localVar);
 };

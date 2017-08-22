@@ -1,17 +1,7 @@
 const t = require('babel-types');
 
-const {pointers} = require('../../IL/cache');
-const {createComment} = require('../../IL/comments.js');
-const {
-  createLocalNumberData,
-  createStringData,
-  writeLocal,
-} = require('../../IL/variable');
-const {negateNumber} = require('../../IL/stdlib/number');
-const {createStrictComparaison} = require('../../IL/comparisons');
-const {createOperation} = require('../../IL/builtin/arithmetic');
+const IL = require('../../IL');
 const {generateGlobalIdentifier, panic} = require('../../utils');
-const {createArguments} = require('../../IL/functions');
 
 module.exports = function(path, {code, isMain}) {
   const [declaration] = path.node.declarations;
@@ -24,9 +14,9 @@ module.exports = function(path, {code, isMain}) {
     const source = path.getSource();
 
     if (source) {
-      appendInstructions([createComment(source)]);
+      appendInstructions([IL.comments.createComment(source)]);
     } else {
-      appendInstructions([createComment('VariableDeclaration')]);
+      appendInstructions([IL.comments.createComment('VariableDeclaration')]);
     }
   }
 
@@ -35,21 +25,21 @@ module.exports = function(path, {code, isMain}) {
     return path.skip();
   }
 
-  pointers.add(declaration.id.name);
+  IL.cache.pointers.add(declaration.id.name);
 
   if (t.isNumericLiteral(declaration.init)) {
     appendInstructions(
-      createLocalNumberData(declaration.id.name, declaration.init.value)
+      IL.variable.createLocalNumberData(declaration.id.name, declaration.init.value)
     );
   } else if (t.isStringLiteral(declaration.init)) {
     appendInstructions([
-      createStringData(declaration.id.name, declaration.init.value),
+      IL.variable.createStringData(declaration.id.name, declaration.init.value),
     ]);
   } else if (t.isUnaryExpression(declaration.init, {operator: '-'})) {
     const {argument} = declaration.init;
 
-    const negativeValue = negateNumber(argument.value);
-    const localVar = createLocalNumberData(
+    const negativeValue = IL.stdlib.number.negateNumber(argument.value);
+    const localVar = IL.variable.createLocalNumberData(
       declaration.id.name,
       '%' + negativeValue.result
     );
@@ -69,19 +59,19 @@ module.exports = function(path, {code, isMain}) {
     // It's a comparaison
     if (operator === '===') {
       appendInstructions([
-        createStrictComparaison(declaration.id.name, left.value, right.value),
+        IL.comparisons.createStrictComparaison(declaration.id.name, left.value, right.value),
       ]);
     } else {
       // It's arithmetic
 
-      const op = createOperation(operator, left.value, right.value);
-      const store = writeLocal(
+      const op = IL.buitin.arithemtic.createOperation(operator, left.value, right.value);
+      const store = IL.variable.writeLocal(
         declaration.id.name,
         '%' + op[op.length - 1].result
       );
 
       appendInstructions([
-        ...createLocalNumberData(declaration.id.name, '0'),
+        ...IL.variable.createLocalNumberData(declaration.id.name, '0'),
         ...op,
         store,
       ]);
@@ -91,7 +81,7 @@ module.exports = function(path, {code, isMain}) {
   } else if (t.isCallExpression(declaration.init)) {
     const {callee} = declaration.init;
     const id = '%' + generateGlobalIdentifier();
-    const args = createArguments(
+    const args = IL.functions.createArguments(
       t,
       appendInstructions,
       declaration.init.arguments,
@@ -100,7 +90,7 @@ module.exports = function(path, {code, isMain}) {
 
     append(
       `${id} =l call $${callee.name}(${args.join(', ')})`
-    ), appendInstructions(createLocalNumberData(declaration.id.name, id));
+    ), appendInstructions(IL.variable.createLocalNumberData(declaration.id.name, id));
     path.skip();
   } else {
     return panic(
