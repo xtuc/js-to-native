@@ -13,6 +13,9 @@ function run(filename, cb, {debug} = {}) {
   process._globalIdentifierCount = 0;
   process._debug = debug;
 
+  const noMain = process.argv.indexOf('--nomain') !== -1;
+  process._noMain = noMain;
+
   decache('./IL/cache');
 
   const options = {

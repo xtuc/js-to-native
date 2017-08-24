@@ -31,11 +31,12 @@ declare var exports: Object;
 
 // console.log(a);
 
-// function isStringEqual(l: string, r: string) {
-//   return l === r;
-// }
+// const e = isStringEqual(2, 2);
 
+// console.log(e);
 
-function a() {
-  return 100;
+if ("test" === "test") {
+  console.log('consequent');
+} else {
+  console.log('alternate');
 }

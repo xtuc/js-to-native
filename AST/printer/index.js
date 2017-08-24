@@ -33,7 +33,12 @@ module.exports = function Printer(ast) {
 
   traverse(ast, visitor, scope, state);
 
-  return {code: state.code.getWithMain()};
+
+  if (process._noMain === true) {
+    return {code: state.code.get()};
+  } else {
+    return {code: state.code.getWithMain()};
+  }
 };
 
 module.exports.visitor = visitor;

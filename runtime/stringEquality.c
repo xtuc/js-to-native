@@ -1,6 +1,6 @@
 #include <string.h>
 
-int isStringEqual(int* l, int* r)
+int _c_isStringEqual(int* l, int* r)
 {
     if (strcmp(l, r) == 0)
     {

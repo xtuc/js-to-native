@@ -8,6 +8,8 @@ module.exports = function(path, {isMain, code}) {
     ? code.appendMainInstructions
     : code.appendInstructions).bind(code);
 
+  const append = (isMain ? code.appendMain : code.append).bind(code);
+
   const {argument} = path.node;
   const id = generateGlobalIdentifier();
 
@@ -34,6 +36,22 @@ module.exports = function(path, {isMain, code}) {
     } else {
       panic('Not supported', argument.loc);
     }
+  } else if (t.isCallExpression(argument)) {
+    const args = IL.functions.createArguments(
+      t,
+      appendInstructions,
+      argument.arguments,
+      path
+    );
+
+    append(
+      `%${id} =l call $${argument.callee.name}(${args.join(',')})`
+    );
+
+    // appendInstructions([
+    // ]);
+
+    retValue = '%' + id;
   } else if (t.isNumericLiteral(argument)) {
     retValue = argument.value;
   }

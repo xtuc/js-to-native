@@ -62,7 +62,7 @@ module.exports = function(path, {code, isMain}) {
     if (hasReturnStatement === false) {
 
       state.code.appendInstructions([
-          IL.functions.ret(0),
+        IL.functions.ret(0),
       ]);
     }
 

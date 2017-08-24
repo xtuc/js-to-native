@@ -1,8 +1,6 @@
 {
   "scripts": {
-    "test": "mocha --compilers js:babel-register test/index",
-    "clean": "rm -fv *.out *.s *.ssa",
-    "o": "babel-node cli.js test.js > out.ssa && qbe -o asm.s out.ssa && gcc -I/usr/lib/ asm.s runtime/* -lgc -o a.out"
+    "test": "mocha --compilers js:babel-register test/index"
   },
   "dependencies": {
     "babel-cli": "^6.24.1",

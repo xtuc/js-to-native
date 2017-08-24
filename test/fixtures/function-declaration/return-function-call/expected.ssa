@@ -1,7 +1,8 @@
 
 function w $a() {
   @start
-    ret 100
+    %i1 =l call $b()
+ret %i1
 }
 export function w $main() {
   @start
