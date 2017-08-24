@@ -1,0 +1,11 @@
+
+function w $a() {
+  @start
+    %b =l alloc4 4
+storel 100, %b
+ret 0
+}
+export function w $main() {
+  @start
+    ret 0
+}
