@@ -8,5 +8,5 @@ export function w $main() {
 %i1 =l call $test(l %i2, l %i3, l %i4)
 %foo =l alloc4 4
 storel %i1, %foo
-    ret 0
+ret 0
 }

@@ -1,7 +1,7 @@
 const t = require('babel-types');
 
 const IL = require('../../IL');
-const {generateGlobalIdentifier, panic} = require('../../utils');
+const {generateGlobalIdentifier, panic, flatten} = require('../../utils');
 
 module.exports = function(path, {code, isMain}) {
   const [declaration] = path.node.declarations;
@@ -35,6 +35,38 @@ module.exports = function(path, {code, isMain}) {
     appendInstructions([
       IL.variable.createStringData(declaration.id.name, declaration.init.value),
     ]);
+  } else if (t.isObjectExpression(declaration.init)) {
+    const {properties} = declaration.init;
+    const {name} = declaration.id;
+
+    if (properties.length > 0) {
+      const instructions = properties.map((prop) => {
+        const allocatedName = name + '_' + prop.key.name;
+
+        // Transform ObjectProperty to Assignment
+        const assignment = {
+          left: t.identifier(allocatedName),
+          right: prop.value,
+          loc: prop.loc,
+        };
+
+        IL.cache.pointers.add(allocatedName);
+
+        return [
+          IL.variable.alloc4(allocatedName),
+          IL.variable.createLocalVariable(t, assignment),
+        ];
+      });
+
+      appendInstructions(
+        flatten(instructions)
+      );
+    } else {
+      appendInstructions([
+        IL.variable.alloc4(name)
+      ]);
+    }
+
   } else if (t.isUnaryExpression(declaration.init, {operator: '-'})) {
     const {argument} = declaration.init;
 

@@ -9,5 +9,5 @@ storel %i1, %foo
 %i4 =l copy 1
 %i3 =l call $a(l %i4)
 storel %i3, %foo
-    ret 0
+ret 0
 }

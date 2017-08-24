@@ -4,6 +4,6 @@ export function w $main() {
 %i3 =l copy 1
 %i4 =l sub %i2, %i3
 call $test(l %i4)
-    ret 0
+ret 0
 }
 

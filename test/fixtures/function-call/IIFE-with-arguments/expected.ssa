@@ -1,11 +1,15 @@
+data $[object Object] =  { b "", b 0 }
 
-function w $i2(w %a,b %b,l %c) {
+function w $i2(w %a,l %b,l %c) {
   @start
-    
     ret 0
 }
 export function w $main() {
   @start
-    call $i2()
-    ret 0
+    %i3 =l copy 1
+%i4 =l alloc4 4
+storel , %i4
+%i5 =l copy 3
+call $i2(w %i3,l %i4,l %i5)
+ret 0
 }

@@ -1,11 +1,9 @@
 
 function w $test() {
   @start
-    
     ret 0
 }
 export function w $main() {
   @start
-    
     ret 0
 }

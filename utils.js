@@ -76,4 +76,49 @@ function printInstructions(instructions: [Instruction], sep: string = '\n'): str
   }, '');
 }
 
-module.exports = {panic, getFlowTypeAtPos, generateGlobalIdentifier, printInstructions};
+function flatten(arr) {
+  return arr.reduce(
+    function(flat, toFlatten) {
+      return flat.concat(
+        Array.isArray(toFlatten) ? flatten(toFlatten) : toFlatten
+      );
+    },
+    []
+  );
+}
+
+function getVarWithType(type: string, name: string): string {
+  let retype;
+
+  switch (type) {
+  case 'number':
+    retype = 'l';
+    break;
+
+  case 'string':
+    retype = 'l';
+    break;
+
+  case 'boolean':
+    retype = 'w';
+    break;
+
+  case 'Object':
+    retype = 'l';
+    break;
+
+  default:
+    throw new Error('Unsupported type: ' + type);
+  }
+
+  return retype + ' %' + name;
+}
+
+module.exports = {
+  panic,
+  getFlowTypeAtPos,
+  generateGlobalIdentifier,
+  printInstructions,
+  flatten,
+  getVarWithType,
+};

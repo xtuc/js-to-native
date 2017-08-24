@@ -28,8 +28,26 @@ module.exports = function(path, {code, isMain}) {
     right.value = '%' + right.name;
   }
 
-  const op = IL.builtin.arithmetic.createOperation(operator, left.value, right.value);
-  const store = IL.variable.writeLocal(id, '%' + op[op.length - 1].result);
+  if (operator === '===') {
+    appendInstructions([
+      IL.comparisons.createStrictComparaison(
+        id,
+        left.value,
+        right.value
+      ),
+    ]);
+  } else {
+    const op = IL.builtin.arithmetic.createOperation(
+      operator,
+      left.value,
+      right.value
+    );
+    const store = IL.variable.writeLocal(id, '%' + op[op.length - 1].result);
 
-  appendInstructions([...IL.variable.createLocalNumberData(id, '0'), ...op, store]);
+    appendInstructions([
+      ...IL.variable.createLocalNumberData(id, '0'),
+      ...op,
+      store,
+    ]);
+  }
 };

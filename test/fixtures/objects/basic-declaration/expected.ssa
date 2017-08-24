@@ -3,6 +3,5 @@
 export function w $main() {
   @start
     %a =l alloc4 4
-storel 1, %a
 ret 0
 }

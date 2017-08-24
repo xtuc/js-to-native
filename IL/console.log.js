@@ -10,7 +10,6 @@ const {createStringData} = require('./variable');
 module.exports = function(path, id, append, code, appendInstructions) {
   let firstArg = path.node.arguments[0];
   let globalIdentifier = true;
-  const firstArgType = getFlowTypeAtPos(firstArg.loc);
 
   if (t.isBinaryExpression(firstArg)) {
     const {left, right, operator, loc} = firstArg;
@@ -35,6 +34,20 @@ module.exports = function(path, id, append, code, appendInstructions) {
     // Virtually declare a new variable in scope
     path.scope.push({id: firstArg});
   }
+
+  if (t.isMemberExpression(firstArg)) {
+    const id = t.identifier(firstArg.object.name + '_' + firstArg.property.name);
+    id.loc = firstArg.property.loc;
+
+    id._ignore = true;
+
+    firstArg = id;
+
+    // Virtually declare a new variable in scope
+    path.scope.push({id: firstArg});
+  }
+
+  const firstArgType = getFlowTypeAtPos(firstArg.loc);
 
   if (firstArgType === 'number') {
     code.appendGlobal(runtime.getIntegerFormat());

@@ -17,8 +17,8 @@ function run(filename, cb, {debug} = {}) {
 
   const options = {
     plugins: [
-      require('./AST/plugins/flattenVariableDeclarations'),
       require('./AST/plugins/booleanToInteger'),
+      require('./AST/plugins/flattenVariableDeclarations'),
       require('./AST/plugins/updateExpressionToAssignement'),
       'transform-es2015-arrow-functions',
     ],

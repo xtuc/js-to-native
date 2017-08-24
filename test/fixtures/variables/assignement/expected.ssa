@@ -8,5 +8,5 @@ storel 0, %a
 storel 1, %b
 %i1 =l loadl %b
 storel %i1, %a
-    ret 0
+ret 0
 }

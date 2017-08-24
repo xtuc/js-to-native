@@ -29,6 +29,19 @@ function createLocalNumberData(id: string, value: string): [Instruction] {
   }];
 }
 
+function alloc4(id: string): Instruction {
+  if (typeof id === "undefined") {
+    throw new Error("Identifier cannot be null in alloc4");
+  }
+
+  return {
+    type: 'l',
+    name: 'alloc4',
+    left: '4',
+    result: id,
+  }
+}
+
 function createLocalAssignement(id: string, valueId: string): Instruction {
 
   return {
@@ -104,6 +117,12 @@ function createLocalVariable(
     const {left, right} = assignement;
 
     return [writeLocal(left.name, right.value)];
+  } else if (t.isStringLiteral(right)) {
+    return createStringData(left.name, right.value);
+  } else if (t.isBooleanLiteral(right)) {
+    const {left, right} = assignement;
+
+    return [writeLocal(left.name, +right.value)];
   } else {
     return panic('Unsupported assignement (' + left.type + ' = ' + right.type + ')', loc);
   }
@@ -124,4 +143,5 @@ module.exports = {
   createLocalAssignement,
   loadLocal,
   identifier,
+  alloc4,
 };

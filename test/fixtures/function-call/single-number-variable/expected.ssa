@@ -6,5 +6,5 @@ export function w $main() {
 storel 0, %a
 %i2 =l loadl %a
 call $test(l %i2)
-    ret 0
+ret 0
 }

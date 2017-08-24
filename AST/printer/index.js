@@ -1,5 +1,6 @@
 const traverse = require('babel-traverse').default;
 const CodeBuffer = require('../../buffer');
+const IL = require('../../IL');
 
 const visitor = {
   noScope: true,
@@ -12,6 +13,18 @@ const visitor = {
   WhileStatement: require('./WhileStatement'),
   AssignmentExpression: require('./AssignmentExpression'),
   IfStatement: require('./IfStatement'),
+  ReturnStatement: require('./ReturnStatement'),
+
+  Program: {
+    exit(path, {code, isMain}) {
+
+      if (isMain) {
+        code.appendMainInstructions([
+          IL.functions.ret(0),
+        ]);
+      }
+    }
+  }
 };
 
 module.exports = function Printer(ast) {

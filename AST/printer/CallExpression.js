@@ -3,7 +3,7 @@ const traverse = require('babel-traverse').default;
 
 const IL = require('../../IL');
 const ILConsoleLog = require('../../IL/console.log');
-const {generateGlobalIdentifier, getFlowTypeAtPos, panic} = require('../../utils');
+const {generateGlobalIdentifier, getFlowTypeAtPos, panic, getVarWithType} = require('../../utils');
 const CodeBuffer = require('../../buffer');
 
 module.exports = function(path, {code, isMain}) {
@@ -41,15 +41,7 @@ module.exports = function(path, {code, isMain}) {
       params = params.map(function(param) {
         const type = getFlowTypeAtPos(param.loc);
 
-        if (type === 'number') {
-          return 'l %' + param.name;
-        } else if (type === 'boolean') {
-          return 'w %' + param.name;
-        } else if (type === 'string') {
-          return 'l %' + param.name;
-        } else {
-          return panic('Unsupported type', param.loc);
-        }
+        return getVarWithType(type, param.name);
       });
     }
 
@@ -65,6 +57,14 @@ module.exports = function(path, {code, isMain}) {
 
     const {visitor} = require('./index');
     traverse(body, visitor, null, state);
+
+    const hasReturnStatement = !!body.body.find((e) => t.isReturnStatement(e));
+    if (hasReturnStatement === false) {
+
+      state.code.appendInstructions([
+          IL.functions.ret(0),
+      ]);
+    }
 
     code.append(IL.functions._function(id, state.code.get(), 'w', params));
 

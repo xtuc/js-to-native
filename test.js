@@ -6,6 +6,8 @@ declare function GC_expand_hp(bytes: number): void;
 declare function GC_malloc_ignore_off_page(bytes: number): void;
 declare function GC_set_warn_proc(proc: Object): void;
 declare function GC_enable_incremental(): void;
+declare var window: Object;
+declare var exports: Object;
 
 // function fibonacci() {
 //   var num = 50;
@@ -25,6 +27,15 @@ declare function GC_enable_incremental(): void;
 
 // fibonacci();
 
-(function (a: boolean, b: string, c: number) {
-  console.log(c);
-})(true, '', 3);
+// const a = 'test';
+
+// console.log(a);
+
+// function isStringEqual(l: string, r: string) {
+//   return l === r;
+// }
+
+
+function a() {
+  return 100;
+}

@@ -1,0 +1,2 @@
+const a: Object = {};
+

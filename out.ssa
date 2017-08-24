@@ -1,5 +1,8 @@
 
-
+function w $a() {
+  @start
+    ret 100
+}
 export function w $main() {
   @start
     ret 0

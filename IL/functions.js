@@ -11,9 +11,15 @@ function _function(name, body, returnType = 'w', args = []) {
     function ${returnType} $${name}(${args.join(',')}) {
       @start
         ${body}
-        ret 0
     }
   `;
+}
+
+function ret(value: string): Instruction {
+  return {
+    name: 'ret',
+    left: value,
+  };
 }
 
 function main(body) {
@@ -101,7 +107,7 @@ function createArguments(t: Object, appendInstructions: any, args: [Object], pat
         // );
       }
 
-    } else if (argType === 'string' || argType === 'boolean') {
+    } else if (argType === 'string' || argType === 'boolean' || argType === 'Object') {
 
       if (t.isIdentifier(id)) {
         const binding = path.scope.getBinding(id.name);
@@ -111,7 +117,6 @@ function createArguments(t: Object, appendInstructions: any, args: [Object], pat
 
       } else {
         const value = id.value;
-        console.log(id, value);
         const stringData = createStringData(id, value);
 
         appendGlobalInstructions([stringData]);
@@ -141,4 +146,4 @@ function createArguments(t: Object, appendInstructions: any, args: [Object], pat
   });
 }
 
-module.exports = {_function, main, createArguments};
+module.exports = {_function, main, createArguments, ret};

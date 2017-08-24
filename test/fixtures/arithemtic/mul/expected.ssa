@@ -8,5 +8,5 @@ storel 0, %i1
 %i3 =l copy 1
 %i4 =l mul %i2, %i3
 storel %i4, %i1
-    ret 0
+ret 0
 }

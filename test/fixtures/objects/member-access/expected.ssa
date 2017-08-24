@@ -2,7 +2,7 @@
 
 export function w $main() {
   @start
-    %a =l alloc4 4
-storel 1, %a
+    %a_b =l alloc4 4
+storel 1, %a_b
 ret 0
 }
