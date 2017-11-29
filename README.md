@@ -1,4 +1,4 @@
-# jsQBE
+# js-to-native
 
 > Compile JS to native
 
@@ -6,6 +6,7 @@ WIP, I will probably never finish it.
 
 ## Requires:
 - bdwgc (The Boehm-Demers-Weiser conservative C/C++ Garbage Collector)
+- https://c9x.me/compile/
 
 ## Examples
 
