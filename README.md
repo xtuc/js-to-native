@@ -11,3 +11,7 @@ WIP, I will probably never finish it.
 ## Examples
 
 https://github.com/xtuc/jsQBE/blob/master/test/fixtures/arithemtic/div/actual.js -> https://github.com/xtuc/jsQBE/blob/master/test/fixtures/arithemtic/div/expected.ssa
+
+## Usage
+
+See the Makefile targets.
