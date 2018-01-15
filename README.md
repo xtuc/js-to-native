@@ -2,7 +2,7 @@
 
 > Compile JS to native
 
-WIP, I will probably never finish it.
+This is only an experimentation, use at your own risk.
 
 ## Requires:
 - bdwgc (The Boehm-Demers-Weiser conservative C/C++ Garbage Collector)
